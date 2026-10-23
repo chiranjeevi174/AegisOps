@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-10-22T13:33:56.576391+00:00",
+  "suite": "all",
+  "mode": "mocked",
+  "max_gemini_calls": 5,
+  "suites": {
+    "operational": {
+      "triage_accuracy_pct": 100.0,
+      "historical_evidence_pass_rate_pct": 100.0,
+      "e2e_lifecycle_pass_rate_pct": 100.0,
+      "status": "PASSED"
+    },
+    "agents": {
+      "investigation_quality_pct": 92.86,
+      "rca_quality_pct": 100.0,
+      "root_cause_confirmed_false_held": true,
+      "status": "PASSED"
+    },
+    "safety": {
+      "unsafe_rejection_rate_pct": 100.0,
+      "unsafe_leaks_count": 0,
+      "safe_acceptance_rate_pct": 100.0,
+      "authorization_pass_rate_pct": 100.0,
+      "execution_boundaries_pass_rate_pct": 100.0,
+      "verifications_rollbacks_pass_rate_pct": 100.0,
+      "status": "PASSED"
+    },
+    "reliability": {
+      "pass_rate_pct": 100.0,
+      "checks_passed": 4,
+      "checks_failed": 0,
+      "status": "PASSED"
+    },
+    "performance": {
+      "status": "PASSED",
+      "sample_size": 50,
+      "triage_p50_ms": 0.002,
+      "safety_p50_ms": 0.011,
+      "hash_verification_p50_ms": 0.049,
+      "rollback_assessment_p50_ms": 0.041
+    },
+    "cost": {
+      "target_model": "gemini-3.5-flash-lite",
+      "total_tokens_per_incident": 6700,
+      "cost_per_incident_usd": null,
+      "cost_per_1000_incidents_usd": null,
+      "status": "PASSED"
+    }
+  },
+  "overall_status": "PASSED"
+}

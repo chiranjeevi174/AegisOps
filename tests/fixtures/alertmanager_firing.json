@@ -1,0 +1,20 @@
+
+{
+  "receiver": "aegisops",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "fingerprint": "aegisops-test-high-cpu-001",
+      "labels": {
+        "alertname": "HighCPUUsage",
+        "severity": "high",
+        "service": "simulator"
+      },
+      "annotations": {
+        "summary": "High CPU utilization detected",
+        "description": "Simulated CPU utilization exceeded 90%."
+      }
+    }
+  ]
+}

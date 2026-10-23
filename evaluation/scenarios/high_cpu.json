@@ -1,0 +1,24 @@
+{
+  "scenario_id": "SCEN-002-HIGH-CPU",
+  "name": "High CPU Saturation",
+  "description": "Simulated compute saturation scenario with CPU exceeding 90%, mild latency elevation, zero HTTP errors, and service_up active.",
+  "synthetic": true,
+  "telemetry": {
+    "cpu_percent": 94.2,
+    "latency_seconds": 0.28,
+    "error_rate": 0.002,
+    "service_up": 1.0
+  },
+  "alert": {
+    "title": "High CPU Utilization on Synthetic Target",
+    "severity": "high",
+    "alert_name": "TargetHighCPU"
+  },
+  "expected": {
+    "priority": "P2",
+    "requires_escalation": true,
+    "is_anomalous": true,
+    "primary_anomalous_metric": "cpu_percent",
+    "recommended_action_type": "diagnostic"
+  }
+}

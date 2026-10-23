@@ -1,0 +1,24 @@
+{
+  "scenario_id": "SCEN-004-ERROR-SPIKE",
+  "name": "HTTP 5xx Error Rate Spike",
+  "description": "Simulated surge in upstream 5xx responses (>15% error rate) with elevated latency and active service probe.",
+  "synthetic": true,
+  "telemetry": {
+    "cpu_percent": 68.4,
+    "latency_seconds": 0.85,
+    "error_rate": 0.22,
+    "service_up": 1.0
+  },
+  "alert": {
+    "title": "Critical Error Rate Spike on Gateway",
+    "severity": "critical",
+    "alert_name": "High5xxErrorRate"
+  },
+  "expected": {
+    "priority": "P1",
+    "requires_escalation": true,
+    "is_anomalous": true,
+    "primary_anomalous_metric": "error_rate",
+    "recommended_action_type": "diagnostic"
+  }
+}

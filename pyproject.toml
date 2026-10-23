@@ -1,0 +1,36 @@
+[project]
+name = "aegisops"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "chiranjeevi174", email = "chiranjeevi2034@gmail.com" }
+]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "alembic>=1.20.0",
+    "asyncpg>=0.32.0",
+    "fastapi>=0.143.1",
+    "google-genai>=2.31.0",
+    "langgraph>=1.2.15",
+    "prometheus-client>=0.26.0",
+    "pydantic-settings>=2.16.0",
+    "requests>=2.34.2",
+    "sqlalchemy[asyncio]>=2.0,<3",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+agentic-sre-and-autonomous-incident-response-platform-aegisops = "agentic_sre_and_autonomous_incident_response_platform_aegisops:main"
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.17.0",
+]

@@ -1,0 +1,30 @@
+{
+  "suite": "failure_recovery_and_reliability",
+  "checks_evaluated": 4,
+  "checks_passed": 4,
+  "checks_failed": 0,
+  "pass_rate_pct": 100.0,
+  "details": [
+    {
+      "id": "REL-001",
+      "name": "Prometheus unreachable graceful handling",
+      "passed": true
+    },
+    {
+      "id": "REL-002",
+      "name": "Gemini API 429 quota failure in investigation handled",
+      "passed": true
+    },
+    {
+      "id": "REL-003",
+      "name": "Gemini API 500 internal error in RCA handled",
+      "passed": true
+    },
+    {
+      "id": "REL-004",
+      "name": "Partial monitoring telemetry handled without failure",
+      "passed": true
+    }
+  ],
+  "status": "PASSED"
+}

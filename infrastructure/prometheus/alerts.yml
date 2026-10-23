@@ -1,0 +1,103 @@
+
+groups:
+  - name: aegisops-simulator-alerts
+    interval: 15s
+
+    rules:
+      - alert: HighCPUUsage
+        expr: aegisops_sim_cpu_usage_percent{job="aegisops-simulator"} > 90
+        for: 0s
+        labels:
+          severity: high
+          service: simulator
+        annotations:
+          summary: "High CPU utilization detected"
+          description: "Simulated CPU utilization exceeded 90%."
+
+      - alert: HighAPILatency
+        expr: aegisops_sim_latency_seconds{job="aegisops-simulator"} > 2
+        for: 0s
+        labels:
+          severity: high
+          service: simulator
+        annotations:
+          summary: "High API latency detected"
+          description: "Simulated response latency exceeded 2 seconds."
+
+      - alert: HTTPErrorSpike
+        expr: aegisops_sim_error_rate{job="aegisops-simulator"} > 0.20
+        for: 0s
+        labels:
+          severity: high
+          service: simulator
+        annotations:
+          summary: "HTTP error rate spike detected"
+          description: "Simulated HTTP error rate exceeded 20%."
+
+      - alert: ServiceDegraded
+        expr: aegisops_sim_service_up{job="aegisops-simulator"} == 0
+        for: 0s
+        labels:
+          severity: critical
+          service: simulator
+        annotations:
+          summary: "Service degradation detected"
+          description: "Simulated service health dropped to zero."
+
+  - name: aegisops-platform-alerts
+    interval: 15s
+    rules:
+      - alert: AegisOpsSustainedAPIErrorRate
+        expr: sum(rate(aegisops_http_requests_total{status_code=~"5.."}[5m])) / clamp_min(sum(rate(aegisops_http_requests_total[5m])), 0.001) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          service: aegisops
+          alert_category: platform
+        annotations:
+          summary: "Sustained AegisOps API error rate"
+          description: "AegisOps HTTP 5xx error rate has exceeded 5% over 5 minutes."
+
+      - alert: AegisOpsElevatedAPILatency
+        expr: histogram_quantile(0.95, sum(rate(aegisops_http_request_duration_seconds_bucket[5m])) by (le)) > 2
+        for: 2m
+        labels:
+          severity: warning
+          service: aegisops
+          alert_category: platform
+        annotations:
+          summary: "Elevated AegisOps API latency"
+          description: "AegisOps API 95th percentile latency exceeds 2 seconds."
+
+      - alert: AegisOpsDependencyReadinessFailure
+        expr: aegisops_dependency_health_status == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: aegisops
+          alert_category: platform
+        annotations:
+          summary: "AegisOps dependency readiness failure"
+          description: "A core dependency (PostgreSQL or Prometheus) failed health checks."
+
+      - alert: AegisOpsWorkflowFailureRate
+        expr: sum(rate(aegisops_workflow_runs_total{status="failed"}[5m])) / clamp_min(sum(rate(aegisops_workflow_runs_total[5m])), 0.001) > 0.20
+        for: 2m
+        labels:
+          severity: high
+          service: aegisops
+          alert_category: platform
+        annotations:
+          summary: "Elevated LangGraph workflow failures"
+          description: "More than 20% of agentic workflow runs are failing."
+
+      - alert: AegisOpsSecurityDenialSpike
+        expr: sum(rate(aegisops_security_denials_total[5m])) > 10
+        for: 1m
+        labels:
+          severity: warning
+          service: aegisops
+          alert_category: platform
+        annotations:
+          summary: "Elevated security denials detected"
+          description: "Security denials (RBAC, CSRF, rate limits) spiked above 10 per second."

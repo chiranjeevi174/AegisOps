@@ -1,0 +1,43 @@
+{
+  "suite": "performance_and_latency_benchmarks",
+  "sample_size_per_operation": 50,
+  "measurements": {
+    "triage_decision_latency_ms": {
+      "count": 50,
+      "min": 0.001,
+      "max": 0.009,
+      "mean": 0.002,
+      "p50": 0.002,
+      "p95": 0.002,
+      "p99": 0.006
+    },
+    "plan_hash_verification_latency_ms": {
+      "count": 50,
+      "min": 0.035,
+      "max": 1.196,
+      "mean": 0.104,
+      "p50": 0.049,
+      "p95": 0.391,
+      "p99": 0.888
+    },
+    "remediation_safety_validation_latency_ms": {
+      "count": 50,
+      "min": 0.011,
+      "max": 0.078,
+      "mean": 0.015,
+      "p50": 0.011,
+      "p95": 0.04,
+      "p99": 0.065
+    },
+    "rollback_eligibility_assessment_latency_ms": {
+      "count": 50,
+      "min": 0.03,
+      "max": 0.148,
+      "mean": 0.044,
+      "p50": 0.041,
+      "p95": 0.064,
+      "p99": 0.111
+    }
+  },
+  "status": "PASSED"
+}

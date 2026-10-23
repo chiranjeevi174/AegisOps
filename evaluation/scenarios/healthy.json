@@ -1,0 +1,23 @@
+{
+  "scenario_id": "SCEN-001-HEALTHY",
+  "name": "Healthy Baseline Operations",
+  "description": "Standard synthetic service operation with nominal CPU (<30%), low latency (<100ms), 0 error rate, and healthy service status.",
+  "synthetic": true,
+  "telemetry": {
+    "cpu_percent": 24.5,
+    "latency_seconds": 0.045,
+    "error_rate": 0.0,
+    "service_up": 1.0
+  },
+  "alert": {
+    "title": "Service Heartbeat Test",
+    "severity": "low",
+    "alert_name": "HeartbeatProbe"
+  },
+  "expected": {
+    "priority": "P4",
+    "requires_escalation": false,
+    "is_anomalous": false,
+    "recommended_action_type": "observation"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "suite": "gemini_usage_and_cost_modeling",
+  "target_model": "gemini-3.5-flash-lite",
+  "evaluation_mode": "mocked",
+  "usage_source": "estimated",
+  "pricing_available": false,
+  "pricing_source": "Google Cloud / Gemini Developer API Public Rate Card",
+  "pricing_date": "2026-01-01",
+  "model_rates_per_million_usd": null,
+  "workflow_calls_total": 3,
+  "token_totals": {
+    "input_tokens": 4450,
+    "output_tokens": 2250,
+    "total_tokens": 6700
+  },
+  "stage_breakdown": {
+    "investigation": {
+      "calls": 1,
+      "input_tokens": 850,
+      "output_tokens": 450,
+      "total_tokens": 1300,
+      "usage_source": "estimated",
+      "estimated_cost_usd": null,
+      "description": "Evidence ingestion, metric formatting, and structured observation generation."
+    },
+    "root_cause_analysis": {
+      "calls": 1,
+      "input_tokens": 1650,
+      "output_tokens": 850,
+      "total_tokens": 2500,
+      "usage_source": "estimated",
+      "estimated_cost_usd": null,
+      "description": "Historical telemetry window analysis, hypothesis comparison, and limitation mapping."
+    },
+    "remediation_planning": {
+      "calls": 1,
+      "input_tokens": 1950,
+      "output_tokens": 950,
+      "total_tokens": 2900,
+      "usage_source": "estimated",
+      "estimated_cost_usd": null,
+      "description": "RCA synthesis, safety invariant injection, advisory action generation, and risk classification."
+    }
+  },
+  "estimated_cost_per_incident_workflow_usd": null,
+  "estimated_cost_per_1000_incidents_usd": null,
+  "cost_status": "UNAVAILABLE",
+  "limitations": [
+    "Configured model 'gemini-3.5-flash-lite' does not have verified official pricing in the Google Cloud / Gemini Developer API Public Rate Card as of 2026-01-01. Estimated cost is reported as unavailable rather than substituting another model.",
+    "Token consumption is estimated from empirical workflow stage profiles; actual live production token consumption will vary with incident payload size."
+  ],
+  "status": "PASSED"
+}

@@ -1,0 +1,148 @@
+{
+  "triage": {
+    "suite": "incident_triage",
+    "cases_evaluated": 9,
+    "correct_classifications": 9,
+    "incorrect_classifications": 0,
+    "accuracy_pct": 100.0,
+    "state_propagation_verified": true,
+    "failed_case_identifiers": [],
+    "status": "PASSED"
+  },
+  "historical_evidence": {
+    "suite": "historical_evidence_accuracy",
+    "checks_evaluated": 7,
+    "checks_passed": 7,
+    "checks_failed": 0,
+    "pass_rate_pct": 100.0,
+    "details": [
+      {
+        "id": "HIST-001",
+        "name": "Naive timestamp rejection",
+        "passed": true
+      },
+      {
+        "id": "HIST-002",
+        "name": "Future window clamping",
+        "passed": true
+      },
+      {
+        "id": "HIST-003",
+        "name": "Genuine zero value preservation",
+        "passed": true
+      },
+      {
+        "id": "HIST-004",
+        "name": "Non-finite value (NaN/Inf) rejection",
+        "passed": true
+      },
+      {
+        "id": "HIST-005",
+        "name": "Missing series returns empty list",
+        "passed": true
+      },
+      {
+        "id": "HIST-006",
+        "name": "Statistical summary accuracy (min/max/avg/first/last)",
+        "passed": true
+      },
+      {
+        "id": "HIST-007",
+        "name": "Inverted interval rejection",
+        "passed": true
+      }
+    ],
+    "status": "PASSED"
+  },
+  "e2e_lifecycle": {
+    "suite": "end_to_end_operational_lifecycle",
+    "mode": "mocked",
+    "stages_evaluated": 12,
+    "stages_passed": 12,
+    "stages_failed": 0,
+    "pass_rate_pct": 100.0,
+    "stages": [
+      {
+        "stage": "1_alert_ingestion",
+        "name": "Synthetic Alert Ingestion",
+        "passed": true,
+        "details": "Alert payload constructed with valid UTC timestamp"
+      },
+      {
+        "stage": "2_timestamp_preservation",
+        "name": "Original Alert Timestamp Preservation",
+        "passed": true,
+        "details": "alert_started_at preserved exactly"
+      },
+      {
+        "stage": "3_triage",
+        "name": "Deterministic Triage Execution",
+        "passed": true,
+        "details": "Classified to P1 with escalation=True"
+      },
+      {
+        "stage": "4_evidence_collection",
+        "name": "Incident Telemetry Collection",
+        "passed": true,
+        "details": "4 core telemetry indicators collected"
+      },
+      {
+        "stage": "5_investigation",
+        "name": "Gemini Structured Investigation",
+        "passed": true,
+        "details": "Produced structured observation report"
+      },
+      {
+        "stage": "6_historical_rca",
+        "name": "Evidence-Backed RCA Generation",
+        "passed": true,
+        "details": "root_cause_confirmed=False and requires_human_review=True enforced"
+      },
+      {
+        "stage": "7_remediation_safety",
+        "name": "Remediation Safety Validation",
+        "passed": true,
+        "details": "Safety invariants validated; execution_enabled=False enforced"
+      },
+      {
+        "stage": "8_approval_creation_and_decision",
+        "name": "Dual-Control Approval Decision",
+        "passed": true,
+        "details": "Plan hash verified and dual-control separation of duties satisfied"
+      },
+      {
+        "stage": "9_simulation_execution",
+        "name": "Controlled Simulation Execution",
+        "passed": true,
+        "details": "Simulation dry-run completed with zero system mutations"
+      },
+      {
+        "stage": "10_post_execution_verification",
+        "name": "Post-Execution Verification",
+        "passed": true,
+        "details": "remediation_success_confirmed=False preserved"
+      },
+      {
+        "stage": "11_rollback_readiness",
+        "name": "Simulation Rollback Readiness Assessment",
+        "passed": true,
+        "details": "Truthful not_applicable classification; execution disabled"
+      },
+      {
+        "stage": "12_audit_persistence",
+        "name": "Immutable Audit Event Logging",
+        "passed": true,
+        "details": "Audit event captured with sanitized payload and actor"
+      }
+    ],
+    "mandatory_assertions": {
+      "zero_infrastructure_mutations": true,
+      "zero_unauthorized_approvals": true,
+      "zero_shell_commands_executed": true,
+      "zero_automatic_rollbacks": true,
+      "zero_automatic_incident_closures": true,
+      "zero_ai_executable_instructions": true
+    },
+    "status": "PASSED"
+  }
+}

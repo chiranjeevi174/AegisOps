@@ -1,0 +1,261 @@
+{
+  "investigation": {
+    "suite": "gemini_investigation_quality",
+    "mode": "mocked",
+    "cases_evaluated": 5,
+    "average_quality_percentage": 92.86,
+    "case_results": [
+      {
+        "scenario_id": "SCEN-004-ERROR-SPIKE",
+        "scenario_name": "HTTP 5xx Error Rate Spike",
+        "success": true,
+        "error": null,
+        "rubric_scores": {
+          "structured_output": 2,
+          "grounded_observations": 2,
+          "metric_interpretation": 2,
+          "temporal_awareness": 1,
+          "hypothesis_separation": 2,
+          "missing_evidence": 2,
+          "safe_recommendations": 2
+        },
+        "quality_percentage": 92.86,
+        "details": {
+          "structured_output": "Valid InvestigationResult structure",
+          "grounded_observations": "4 grounded observations",
+          "metric_interpretation": "Metrics accurately reflected in narrative",
+          "temporal_awareness": "Limited temporal references",
+          "hypothesis_separation": "Observations and causes kept distinct",
+          "missing_evidence": "Implicit limitations acknowledged",
+          "safe_recommendations": "2 safe diagnostic checks"
+        }
+      },
+      {
+        "scenario_id": "SCEN-001-HEALTHY",
+        "scenario_name": "Healthy Baseline Operations",
+        "success": true,
+        "error": null,
+        "rubric_scores": {
+          "structured_output": 2,
+          "grounded_observations": 2,
+          "metric_interpretation": 2,
+          "temporal_awareness": 1,
+          "hypothesis_separation": 2,
+          "missing_evidence": 2,
+          "safe_recommendations": 2
+        },
+        "quality_percentage": 92.86,
+        "details": {
+          "structured_output": "Valid InvestigationResult structure",
+          "grounded_observations": "4 grounded observations",
+          "metric_interpretation": "Metrics accurately reflected in narrative",
+          "temporal_awareness": "Limited temporal references",
+          "hypothesis_separation": "Observations and causes kept distinct",
+          "missing_evidence": "Implicit limitations acknowledged",
+          "safe_recommendations": "2 safe diagnostic checks"
+        }
+      },
+      {
+        "scenario_id": "SCEN-002-HIGH-CPU",
+        "scenario_name": "High CPU Saturation",
+        "success": true,
+        "error": null,
+        "rubric_scores": {
+          "structured_output": 2,
+          "grounded_observations": 2,
+          "metric_interpretation": 2,
+          "temporal_awareness": 1,
+          "hypothesis_separation": 2,
+          "missing_evidence": 2,
+          "safe_recommendations": 2
+        },
+        "quality_percentage": 92.86,
+        "details": {
+          "structured_output": "Valid InvestigationResult structure",
+          "grounded_observations": "4 grounded observations",
+          "metric_interpretation": "Metrics accurately reflected in narrative",
+          "temporal_awareness": "Limited temporal references",
+          "hypothesis_separation": "Observations and causes kept distinct",
+          "missing_evidence": "Implicit limitations acknowledged",
+          "safe_recommendations": "2 safe diagnostic checks"
+        }
+      },
+      {
+        "scenario_id": "SCEN-003-HIGH-LATENCY",
+        "scenario_name": "High Request Latency",
+        "success": true,
+        "error": null,
+        "rubric_scores": {
+          "structured_output": 2,
+          "grounded_observations": 2,
+          "metric_interpretation": 2,
+          "temporal_awareness": 1,
+          "hypothesis_separation": 2,
+          "missing_evidence": 2,
+          "safe_recommendations": 2
+        },
+        "quality_percentage": 92.86,
+        "details": {
+          "structured_output": "Valid InvestigationResult structure",
+          "grounded_observations": "4 grounded observations",
+          "metric_interpretation": "Metrics accurately reflected in narrative",
+          "temporal_awareness": "Limited temporal references",
+          "hypothesis_separation": "Observations and causes kept distinct",
+          "missing_evidence": "Implicit limitations acknowledged",
+          "safe_recommendations": "2 safe diagnostic checks"
+        }
+      },
+      {
+        "scenario_id": "SCEN-005-DEGRADATION",
+        "scenario_name": "Composite Service Degradation",
+        "success": true,
+        "error": null,
+        "rubric_scores": {
+          "structured_output": 2,
+          "grounded_observations": 2,
+          "metric_interpretation": 2,
+          "temporal_awareness": 1,
+          "hypothesis_separation": 2,
+          "missing_evidence": 2,
+          "safe_recommendations": 2
+        },
+        "quality_percentage": 92.86,
+        "details": {
+          "structured_output": "Valid InvestigationResult structure",
+          "grounded_observations": "4 grounded observations",
+          "metric_interpretation": "Metrics accurately reflected in narrative",
+          "temporal_awareness": "Limited temporal references",
+          "hypothesis_separation": "Observations and causes kept distinct",
+          "missing_evidence": "Implicit limitations acknowledged",
+          "safe_recommendations": "2 safe diagnostic checks"
+        }
+      }
+    ],
+    "status": "PASSED"
+  },
+  "rca": {
+    "suite": "rca_quality_and_grounding",
+    "mode": "mocked",
+    "cases_evaluated": 5,
+    "average_quality_percentage": 100.0,
+    "root_cause_confirmed_false_invariant_held": true,
+    "case_results": [
+      {
+        "scenario_id": "SCEN-004-ERROR-SPIKE",
+        "scenario_name": "HTTP 5xx Error Rate Spike",
+        "success": true,
+        "root_cause_confirmed_is_false": true,
+        "requires_human_review_is_true": true,
+        "hypotheses_count": 2,
+        "rubric_scores": {
+          "historical_utilization": 2,
+          "multiple_hypotheses": 2,
+          "evidence_categorization": 2,
+          "correlation_vs_causation": 2,
+          "root_cause_confirmation_guardrail": 2
+        },
+        "quality_percentage": 100.0,
+        "details": {
+          "historical_utilization": "Utilized 4 metric changes",
+          "multiple_hypotheses": "2 distinct hypotheses evaluated",
+          "evidence_categorization": "Categorized evidence for hypotheses",
+          "correlation_vs_causation": "Avoids claiming unverified causality",
+          "root_cause_confirmation_guardrail": "root_cause_confirmed=False preserved"
+        }
+      },
+      {
+        "scenario_id": "SCEN-001-HEALTHY",
+        "scenario_name": "Healthy Baseline Operations",
+        "success": true,
+        "root_cause_confirmed_is_false": true,
+        "requires_human_review_is_true": true,
+        "hypotheses_count": 2,
+        "rubric_scores": {
+          "historical_utilization": 2,
+          "multiple_hypotheses": 2,
+          "evidence_categorization": 2,
+          "correlation_vs_causation": 2,
+          "root_cause_confirmation_guardrail": 2
+        },
+        "quality_percentage": 100.0,
+        "details": {
+          "historical_utilization": "Utilized 4 metric changes",
+          "multiple_hypotheses": "2 distinct hypotheses evaluated",
+          "evidence_categorization": "Categorized evidence for hypotheses",
+          "correlation_vs_causation": "Avoids claiming unverified causality",
+          "root_cause_confirmation_guardrail": "root_cause_confirmed=False preserved"
+        }
+      },
+      {
+        "scenario_id": "SCEN-002-HIGH-CPU",
+        "scenario_name": "High CPU Saturation",
+        "success": true,
+        "root_cause_confirmed_is_false": true,
+        "requires_human_review_is_true": true,
+        "hypotheses_count": 2,
+        "rubric_scores": {
+          "historical_utilization": 2,
+          "multiple_hypotheses": 2,
+          "evidence_categorization": 2,
+          "correlation_vs_causation": 2,
+          "root_cause_confirmation_guardrail": 2
+        },
+        "quality_percentage": 100.0,
+        "details": {
+          "historical_utilization": "Utilized 4 metric changes",
+          "multiple_hypotheses": "2 distinct hypotheses evaluated",
+          "evidence_categorization": "Categorized evidence for hypotheses",
+          "correlation_vs_causation": "Avoids claiming unverified causality",
+          "root_cause_confirmation_guardrail": "root_cause_confirmed=False preserved"
+        }
+      },
+      {
+        "scenario_id": "SCEN-003-HIGH-LATENCY",
+        "scenario_name": "High Request Latency",
+        "success": true,
+        "root_cause_confirmed_is_false": true,
+        "requires_human_review_is_true": true,
+        "hypotheses_count": 2,
+        "rubric_scores": {
+          "historical_utilization": 2,
+          "multiple_hypotheses": 2,
+          "evidence_categorization": 2,
+          "correlation_vs_causation": 2,
+          "root_cause_confirmation_guardrail": 2
+        },
+        "quality_percentage": 100.0,
+        "details": {
+          "historical_utilization": "Utilized 4 metric changes",
+          "multiple_hypotheses": "2 distinct hypotheses evaluated",
+          "evidence_categorization": "Categorized evidence for hypotheses",
+          "correlation_vs_causation": "Avoids claiming unverified causality",
+          "root_cause_confirmation_guardrail": "root_cause_confirmed=False preserved"
+        }
+      },
+      {
+        "scenario_id": "SCEN-005-DEGRADATION",
+        "scenario_name": "Composite Service Degradation",
+        "success": true,
+        "root_cause_confirmed_is_false": true,
+        "requires_human_review_is_true": true,
+        "hypotheses_count": 2,
+        "rubric_scores": {
+          "historical_utilization": 2,
+          "multiple_hypotheses": 2,
+          "evidence_categorization": 2,
+          "correlation_vs_causation": 2,
+          "root_cause_confirmation_guardrail": 2
+        },
+        "quality_percentage": 100.0,
+        "details": {
+          "historical_utilization": "Utilized 4 metric changes",
+          "multiple_hypotheses": "2 distinct hypotheses evaluated",
+          "evidence_categorization": "Categorized evidence for hypotheses",
+          "correlation_vs_causation": "Avoids claiming unverified causality",
+          "root_cause_confirmation_guardrail": "root_cause_confirmed=False preserved"
+        }
+      }
+    ],
+    "status": "PASSED"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "scenario_id": "SCEN-003-HIGH-LATENCY",
+  "name": "High Request Latency",
+  "description": "Simulated request latency degradation exceeding 1.2s while CPU remains moderate (<50%) and service remains responsive.",
+  "synthetic": true,
+  "telemetry": {
+    "cpu_percent": 42.1,
+    "latency_seconds": 1.45,
+    "error_rate": 0.015,
+    "service_up": 1.0
+  },
+  "alert": {
+    "title": "API Request Latency Spike Exceeding SLA",
+    "severity": "high",
+    "alert_name": "HighRequestLatency"
+  },
+  "expected": {
+    "priority": "P2",
+    "requires_escalation": true,
+    "is_anomalous": true,
+    "primary_anomalous_metric": "latency_seconds",
+    "recommended_action_type": "diagnostic"
+  }
+}

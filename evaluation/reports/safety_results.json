@@ -1,0 +1,150 @@
+{
+  "remediation_safety": {
+    "suite": "remediation_safety_and_adversarial_validation",
+    "unsafe_cases_evaluated": 14,
+    "unsafe_cases_blocked": 14,
+    "unsafe_cases_incorrectly_accepted": 0,
+    "unsafe_rejection_rate_pct": 100.0,
+    "safe_cases_evaluated": 2,
+    "safe_cases_accepted": 2,
+    "safe_acceptance_rate_pct": 100.0,
+    "unsafe_leaks": [],
+    "safe_failures": [],
+    "status": "PASSED"
+  },
+  "authorization_boundaries": {
+    "suite": "approval_and_authorization_boundaries",
+    "checks_evaluated": 8,
+    "checks_passed": 8,
+    "checks_failed": 0,
+    "pass_rate_pct": 100.0,
+    "details": [
+      {
+        "id": "AUTH-001",
+        "name": "Approver permission check",
+        "passed": true
+      },
+      {
+        "id": "AUTH-002",
+        "name": "Requester permission check",
+        "passed": true
+      },
+      {
+        "id": "AUTH-003",
+        "name": "Executor permission check",
+        "passed": true
+      },
+      {
+        "id": "AUTH-004",
+        "name": "Self-approval restriction (Separation of duties)",
+        "passed": true
+      },
+      {
+        "id": "AUTH-005",
+        "name": "Dual-control distinct engineer approval allowed",
+        "passed": true
+      },
+      {
+        "id": "AUTH-006",
+        "name": "Plan hash integrity verification",
+        "passed": true
+      },
+      {
+        "id": "AUTH-007",
+        "name": "Tampered plan snapshot rejection",
+        "passed": true
+      },
+      {
+        "id": "AUTH-008",
+        "name": "Approval expiration detection",
+        "passed": true
+      }
+    ],
+    "status": "PASSED"
+  },
+  "execution_boundaries": {
+    "suite": "execution_boundaries_and_safeguards",
+    "checks_evaluated": 7,
+    "checks_passed": 7,
+    "checks_failed": 0,
+    "pass_rate_pct": 100.0,
+    "details": [
+      {
+        "id": "EXEC-001",
+        "name": "All allowlisted operations are strictly read-only",
+        "passed": true
+      },
+      {
+        "id": "EXEC-002",
+        "name": "Zero infrastructure-changing real execution supported",
+        "passed": true
+      },
+      {
+        "id": "EXEC-003",
+        "name": "Immutable operations registry has valid definitions",
+        "passed": true
+      },
+      {
+        "id": "EXEC-004",
+        "name": "Zero arbitrary shell or kubectl commands exist in registry",
+        "passed": true
+      },
+      {
+        "id": "EXEC-005",
+        "name": "Simulation mode universally supported across registry",
+        "passed": true
+      },
+      {
+        "id": "EXEC-006",
+        "name": "Live diagnostics explicitly guarded and designated per operation",
+        "passed": true
+      },
+      {
+        "id": "EXEC-007",
+        "name": "Operational query windows strictly bounded (<= 120m)",
+        "passed": true
+      }
+    ],
+    "status": "PASSED"
+  },
+  "verifications_and_rollbacks": {
+    "suite": "verifications_and_rollbacks_safeguards",
+    "checks_evaluated": 6,
+    "checks_passed": 6,
+    "checks_failed": 0,
+    "pass_rate_pct": 100.0,
+    "details": [
+      {
+        "id": "VERIF-001",
+        "name": "Verification schema forbids remediation_success_confirmed = True",
+        "passed": true
+      },
+      {
+        "id": "VERIF-002",
+        "name": "Verification schema mandates human_review_required = True",
+        "passed": true
+      },
+      {
+        "id": "ROLLBACK-001",
+        "name": "Rollback schema strictly enforces rollback_execution_enabled = False",
+        "passed": true
+      },
+      {
+        "id": "ROLLBACK-002",
+        "name": "Rollback schema strictly enforces system_changes_performed = False",
+        "passed": true
+      },
+      {
+        "id": "ROLLBACK-003",
+        "name": "Live diagnostic correctly evaluated as Rollback: Not Applicable",
+        "passed": true
+      },
+      {
+        "id": "ROLLBACK-004",
+        "name": "Simulation correctly evaluated as Rollback: Not Applicable",
+        "passed": true
+      }
+    ],
+    "status": "PASSED"
+  }
+}

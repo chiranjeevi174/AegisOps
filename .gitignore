@@ -1,0 +1,67 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# C extensions & Python builds
+build/
+dist/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+.venv/
+.venv
+env/
+venv/
+ENV/
+
+# Testing and Linting caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pytype/
+.coverage
+htmlcov/
+.coverage.*
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+.npm
+*.tsbuildinfo
+*.timestamp-*.mjs
+
+# Environment & Secrets (NEVER COMMIT)
+.env
+.env.*
+!.env.example
+!infrastructure/deployment/.env.example
+infrastructure/alertmanager/webhook_token.txt
+*.pem
+*.key
+*.cert
+
+# Database Backups & Dumps
+backups/
+*.sql
+*.sql.sha256
+
+# Logs and runtime artifacts
+logs/
+*.log
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Persistent service data
+infrastructure/prometheus/data/
+infrastructure/grafana/data/

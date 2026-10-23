@@ -1,0 +1,24 @@
+{
+  "scenario_id": "SCEN-005-DEGRADATION",
+  "name": "Composite Service Degradation",
+  "description": "Simulated multi-vector degradation with flapping service availability (service_up dropping), high errors, and severe latency.",
+  "synthetic": true,
+  "telemetry": {
+    "cpu_percent": 88.0,
+    "latency_seconds": 2.1,
+    "error_rate": 0.45,
+    "service_up": 0.0
+  },
+  "alert": {
+    "title": "Service Outage / Multi-Vector Degradation",
+    "severity": "critical",
+    "alert_name": "TargetDownOrDegraded"
+  },
+  "expected": {
+    "priority": "P1",
+    "requires_escalation": true,
+    "is_anomalous": true,
+    "primary_anomalous_metric": "service_up",
+    "recommended_action_type": "diagnostic"
+  }
+}
