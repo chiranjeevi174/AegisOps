@@ -7,9 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from aegisops.api.rollback_schemas import (
     CreateRollbackAssessmentRequest,
+    ExecuteRollbackRequest,
     RollbackAssessmentDetailResponse,
     RollbackAssessmentSummaryResponse,
     RollbackEventResponse,
+    RollbackExecutionDetailResponse,
 )
 from aegisops.core.auth import (
     AuthenticatedActor,
@@ -240,3 +242,143 @@ async def get_rollback_assessment_events(
         )
         for e in events
     ]
+
+
+@router.post(
+    "/demo-rollbacks/execute",
+    response_model=RollbackExecutionDetailResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(rate_limit_rollbacks)],
+)
+async def execute_demo_rollback(
+    payload: ExecuteRollbackRequest,
+    response: Response,
+    actor: Annotated[AuthenticatedActor, Depends(get_rollback_assessor_actor)],
+    db: DbSession,
+):
+    """Executes deterministic rollback against the isolated demo simulator for an applicable assessment."""
+    try:
+        record, is_replay = await rollbacks.execute_demo_rollback(
+            session=db,
+            assessment_id=payload.assessment_id,
+            idempotency_key=payload.idempotency_key,
+            requested_by=actor.identity,
+            reason=payload.reason,
+        )
+
+        if is_replay:
+            response.status_code = status.HTTP_200_OK
+
+        return RollbackExecutionDetailResponse(
+            id=record.id,
+            assessment_id=record.assessment_id,
+            execution_id=record.execution_id,
+            incident_id=record.incident_id,
+            approval_id=record.approval_id,
+            operation_id=record.operation_id,
+            status=record.status,
+            requested_by=record.requested_by,
+            idempotency_key=record.idempotency_key,
+            requested_at=record.requested_at,
+            started_at=record.started_at,
+            completed_at=record.completed_at,
+            duration_ms=record.duration_ms,
+            restored_scenario=record.restored_scenario,
+            restored_state=record.restored_state,
+            error_message=record.error_message,
+            is_replay=is_replay,
+        )
+    except rollbacks.RollbackAssessmentNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        )
+    except OperationNotAllowedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        )
+    except (ValueError, ValidationError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        )
+
+
+@router.get(
+    "/rollback-executions",
+    response_model=list[RollbackExecutionDetailResponse],
+)
+async def list_rollback_executions(
+    actor: Annotated[AuthenticatedActor, Depends(get_current_actor)],
+    db: DbSession,
+    execution_id: UUID | None = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+):
+    """Lists completed or running rollback executions."""
+    records = await rollbacks.list_rollback_executions(
+        session=db,
+        execution_id=execution_id,
+        limit=limit,
+        offset=offset,
+    )
+    return [
+        RollbackExecutionDetailResponse(
+            id=r.id,
+            assessment_id=r.assessment_id,
+            execution_id=r.execution_id,
+            incident_id=r.incident_id,
+            approval_id=r.approval_id,
+            operation_id=r.operation_id,
+            status=r.status,
+            requested_by=r.requested_by,
+            idempotency_key=r.idempotency_key,
+            requested_at=r.requested_at,
+            started_at=r.started_at,
+            completed_at=r.completed_at,
+            duration_ms=r.duration_ms,
+            restored_scenario=r.restored_scenario,
+            restored_state=r.restored_state,
+            error_message=r.error_message,
+            is_replay=False,
+        )
+        for r in records
+    ]
+
+
+@router.get(
+    "/rollback-executions/{rollback_exec_id}",
+    response_model=RollbackExecutionDetailResponse,
+)
+async def get_rollback_execution(
+    rollback_exec_id: UUID,
+    actor: Annotated[AuthenticatedActor, Depends(get_current_actor)],
+    db: DbSession,
+):
+    """Retrieves full details of a specific rollback execution."""
+    record = await rollbacks.get_rollback_execution(db, rollback_exec_id)
+    if record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Rollback execution '{rollback_exec_id}' not found",
+        )
+    return RollbackExecutionDetailResponse(
+        id=record.id,
+        assessment_id=record.assessment_id,
+        execution_id=record.execution_id,
+        incident_id=record.incident_id,
+        approval_id=record.approval_id,
+        operation_id=record.operation_id,
+        status=record.status,
+        requested_by=record.requested_by,
+        idempotency_key=record.idempotency_key,
+        requested_at=record.requested_at,
+        started_at=record.started_at,
+        completed_at=record.completed_at,
+        duration_ms=record.duration_ms,
+        restored_scenario=record.restored_scenario,
+        restored_state=record.restored_state,
+        error_message=record.error_message,
+        is_replay=False,
+    )

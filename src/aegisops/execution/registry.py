@@ -19,6 +19,18 @@ class ConfigReviewParams(BaseModel):
     include_runtime_flags: bool = Field(default=True)
 
 
+class ServiceRemediationParams(BaseModel):
+    service_name: str = Field(default="api-service", max_length=50)
+    target_scenario: str = Field(default="healthy", max_length=50)
+    reason: str = Field(default="Incident remediation", max_length=200)
+
+
+class WorkloadScaleParams(BaseModel):
+    service_name: str = Field(default="api-service", max_length=50)
+    replicas: int = Field(default=3, ge=1, le=10)
+    reason: str = Field(default="Scale out for load mitigation", max_length=200)
+
+
 @dataclass(frozen=True)
 class OperationDefinition:
     id: str
@@ -36,7 +48,7 @@ class OperationDefinition:
     timeout_seconds: int = 5
 
 
-# Fixed, immutable server-side allowlist
+# Fixed, immutable server-side allowlist for production-safe read-only diagnostic operations
 ALLOWLISTED_OPERATIONS: dict[str, OperationDefinition] = {
     "inspect_service_health": OperationDefinition(
         id="inspect_service_health",
@@ -115,6 +127,55 @@ ALLOWLISTED_OPERATIONS: dict[str, OperationDefinition] = {
     ),
 }
 
+# Dedicated allowlist for isolated demo remediation operations (development & testing only)
+DEMO_REMEDIATION_OPERATIONS: dict[str, OperationDefinition] = {
+    "remediate_service_degradation": OperationDefinition(
+        id="remediate_service_degradation",
+        name="Remediate Service Degradation",
+        description="Applies automated remediation against the isolated demo service (resets service metrics and restores healthy operation on port 8001).",
+        risk_level="medium",
+        required_permission="execute:remediation",
+        parameters_schema=ServiceRemediationParams,
+        max_simulated_duration_ms=5000,
+        real_execution_supported=True,
+        live_diagnostic_supported=False,
+        supported_modes=frozenset(["simulation", "demo_execution"]),
+        is_read_only=False,
+        max_window_minutes=120,
+        timeout_seconds=5,
+    ),
+    "restart_demo_service": OperationDefinition(
+        id="restart_demo_service",
+        name="Restart Demo Service",
+        description="Executes a controlled rolling restart of the demo service container, resetting transient threads and restoring baseline health.",
+        risk_level="medium",
+        required_permission="execute:remediation",
+        parameters_schema=ServiceRemediationParams,
+        max_simulated_duration_ms=5000,
+        real_execution_supported=True,
+        live_diagnostic_supported=False,
+        supported_modes=frozenset(["simulation", "demo_execution"]),
+        is_read_only=False,
+        max_window_minutes=120,
+        timeout_seconds=5,
+    ),
+    "scale_demo_workload": OperationDefinition(
+        id="scale_demo_workload",
+        name="Scale Demo Workload",
+        description="Adjusts simulated compute and worker concurrency to absorb incoming request bursts and alleviate CPU throttling.",
+        risk_level="low",
+        required_permission="execute:remediation",
+        parameters_schema=WorkloadScaleParams,
+        max_simulated_duration_ms=5000,
+        real_execution_supported=True,
+        live_diagnostic_supported=False,
+        supported_modes=frozenset(["simulation", "demo_execution"]),
+        is_read_only=False,
+        max_window_minutes=120,
+        timeout_seconds=5,
+    ),
+}
+
 # Explicitly banned patterns and names
 BANNED_OPERATION_NAMES = frozenset(
     [
@@ -143,6 +204,8 @@ def get_operation_definition(operation_id: str) -> OperationDefinition:
         )
 
     op = ALLOWLISTED_OPERATIONS.get(operation_id)
+    if op is None:
+        op = DEMO_REMEDIATION_OPERATIONS.get(operation_id)
     if op is None:
         raise OperationNotAllowedError(
             f"Operation '{operation_id}' is not in the remediation allowlist"

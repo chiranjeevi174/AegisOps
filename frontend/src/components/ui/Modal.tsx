@@ -40,26 +40,26 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-obsidian-950/85 backdrop-blur-sm animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
     >
       <div
-        className={`w-full ${maxWidthClasses[maxWidth]} bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden scale-100 animate-in zoom-in-95 duration-150`}
+        className={`w-full ${maxWidthClasses[maxWidth]} bg-obsidian-850 border border-obsidian-700 rounded-xl shadow-obsidian-lg overflow-hidden scale-100 animate-in zoom-in-95 duration-150 text-obsidian-text`}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-obsidian-700/80 bg-obsidian-900/50">
           <div>
-            <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
+            <h2 className="text-base font-semibold text-obsidian-text">{title}</h2>
             {description && (
-              <p className="text-xs text-slate-400 mt-0.5">{description}</p>
+              <p className="text-xs text-obsidian-muted mt-0.5">{description}</p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-md text-obsidian-muted hover:text-obsidian-text hover:bg-obsidian-750 transition-colors"
             aria-label="Close modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
         <div className="p-6 max-h-[80vh] overflow-y-auto">{children}</div>

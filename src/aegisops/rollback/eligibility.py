@@ -66,6 +66,7 @@ async def validate_execution_for_rollback_eligibility(
     terminal_statuses = {
         ExecutionStatus.SIMULATED.value,
         ExecutionStatus.DIAGNOSED.value,
+        ExecutionStatus.EXECUTED.value,
         ExecutionStatus.FAILED.value,
         ExecutionStatus.TIMED_OUT.value,
         ExecutionStatus.REJECTED.value,
@@ -167,13 +168,17 @@ def evaluate_rollback_eligibility(
     )
 
     # Prerequisite 3: Pre-Change Baseline State Captured
-    has_prior_state = False
+    has_prior_state = execution.mode == ExecutionMode.DEMO_EXECUTION.value
     prerequisites.append(
         RollbackPrerequisite(
             name="Prior State Snapshot Available",
             description="Verified immutable capture of configuration or system state preceding execution.",
             satisfied=has_prior_state,
-            details="No configuration state modification was performed; prior state snapshot is not required.",
+            details=(
+                "Prior state snapshot captured on isolated demo simulator."
+                if has_prior_state
+                else "No configuration state modification was performed; prior state snapshot is not required."
+            ),
         )
     )
 
@@ -186,6 +191,60 @@ def evaluate_rollback_eligibility(
             details="Pending operator review; human authorization is mandatory prior to any reversal.",
         )
     )
+
+    # Evaluate demo execution mode
+    if execution.mode == ExecutionMode.DEMO_EXECUTION.value:
+        applicability = RollbackApplicability.APPLICABLE
+        readiness_status = RollbackReadinessStatus.READY_FOR_REVIEW
+        risk_level = RollbackRiskLevel.LOW
+
+        proposed_steps.append(
+            RollbackStep(
+                step_number=1,
+                action_type="deterministic_reversion",
+                description="Restore pre-remediation telemetry scenario and state on isolated simulator.",
+                target_component="demo-simulator",
+                estimated_duration_seconds=2,
+                advisory_notes=[
+                    "Restores prior metric scenario on port 8001; reversible via re-execution."
+                ],
+            )
+        )
+        proposed_steps.append(
+            RollbackStep(
+                step_number=2,
+                action_type="telemetry_verification",
+                description="Verify telemetry metrics reflect restored state in Prometheus and Grafana.",
+                target_component="Prometheus",
+                estimated_duration_seconds=5,
+                advisory_notes=[
+                    "Check that CPU/latency/error rate gauges resume prior profile."
+                ],
+            )
+        )
+
+        observations.append(
+            f"Rollback is APPLICABLE for demo execution '{execution.id}'. Pre-remediation state is preserved on isolated simulator."
+        )
+        validation_criteria.append(
+            "Confirm simulator endpoints report successful restoration to previous scenario."
+        )
+        validation_criteria.append(
+            "Verify Prometheus scrapes restored metric values from port 8001."
+        )
+
+        return (
+            applicability,
+            readiness_status,
+            risk_level,
+            prerequisites,
+            evidence,
+            missing_info,
+            proposed_steps,
+            validation_criteria,
+            limitations,
+            observations,
+        )
 
     # Evaluate read-only modes
     if execution.mode in (

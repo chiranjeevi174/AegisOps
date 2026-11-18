@@ -24,6 +24,9 @@ class ExecutionEventType(StrEnum):
     DIAGNOSTIC_STARTED = "diagnostic_started"
     DIAGNOSTIC_COMPLETED = "diagnostic_completed"
     DIAGNOSTIC_FAILED = "diagnostic_failed"
+    EXECUTION_STARTED = "execution_started"
+    EXECUTION_COMPLETED = "execution_completed"
+    EXECUTION_FAILED = "execution_failed"
     REJECTED = "rejected"
     TIMED_OUT = "timed_out"
 

@@ -37,7 +37,9 @@ class Settings(BaseSettings):
     execution_eligibility_minutes: int = 120
     enforce_separation_of_duties: bool = True
     human_auth_tokens: SecretStr = SecretStr("")
-    live_diagnostics_enabled: bool = False
+    live_diagnostics_enabled: bool = True
+    demo_execution_enabled: bool = True
+    demo_service_url: str = "http://127.0.0.1:8001"
     verification_min_coverage_pct: float = 20.0
     verification_max_allowed_gap_seconds: int = 300
 
@@ -89,6 +91,10 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment.lower() == "production"
+
+    @property
+    def can_execute_demo(self) -> bool:
+        return not self.is_production and self.demo_execution_enabled
 
     @property
     def dev_persona_switching_allowed(self) -> bool:

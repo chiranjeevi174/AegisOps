@@ -1,10 +1,13 @@
 import time
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from uuid import UUID
 
+import httpx
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from aegisops.core.config import get_settings
 from aegisops.domain.rollback import (
     RollbackApplicability,
     RollbackAssessment,
@@ -13,6 +16,12 @@ from aegisops.domain.rollback import (
     RollbackRiskLevel,
 )
 from aegisops.domain.rollback_event import RollbackEvent, RollbackEventType
+from aegisops.domain.rollback_execution import (
+    RollbackExecution,
+    RollbackExecutionEvent,
+    RollbackExecutionStatus,
+)
+from aegisops.execution.registry import OperationNotAllowedError
 from aegisops.rollback.eligibility import (
     evaluate_rollback_eligibility,
     validate_execution_for_rollback_eligibility,
@@ -350,3 +359,183 @@ async def reconcile_stale_rollback_assessments(
     if count > 0:
         await session.commit()
     return count
+
+
+async def execute_demo_rollback(
+    session: AsyncSession,
+    assessment_id: UUID,
+    idempotency_key: str,
+    requested_by: str,
+    reason: str = "Operator authorized rollback following remediation verification",
+) -> tuple[RollbackExecution, bool]:
+    """Executes deterministic rollback against the isolated demo telemetry simulator.
+
+    Strictly gated to development environments; prohibited in production.
+    Returns (rollback_execution_record, is_replay).
+    """
+    settings = get_settings()
+    if not settings.can_execute_demo:
+        raise OperationNotAllowedError(
+            "Demo rollback execution is disabled or forbidden in this environment"
+        )
+
+    if not idempotency_key or not idempotency_key.strip():
+        raise ValueError("An idempotency key is required")
+
+    idempotency_key = idempotency_key.strip()
+
+    # 1. Load rollback assessment
+    assessment = await session.get(RollbackAssessment, assessment_id)
+    if assessment is None:
+        raise RollbackAssessmentNotFoundError(
+            f"Rollback assessment '{assessment_id}' not found"
+        )
+
+    if assessment.applicability != RollbackApplicability.APPLICABLE.value:
+        raise ValueError(
+            f"Rollback assessment '{assessment_id}' applicability is '{assessment.applicability}' (must be 'applicable')"
+        )
+
+    # 2. Check idempotency
+    existing_stmt = select(RollbackExecution).where(
+        RollbackExecution.execution_id == assessment.execution_id,
+        RollbackExecution.idempotency_key == idempotency_key,
+    )
+    existing = await session.scalar(existing_stmt)
+    if existing is not None:
+        return existing, True
+
+    now = datetime.now(UTC)
+    t0 = time.perf_counter()
+
+    # 3. Create initial RUNNING record and commit
+    rollback_exec = RollbackExecution(
+        assessment_id=assessment.id,
+        execution_id=assessment.execution_id,
+        incident_id=assessment.incident_id,
+        approval_id=assessment.approval_id,
+        operation_id=assessment.operation_id,
+        status=RollbackExecutionStatus.RUNNING.value,
+        requested_by=requested_by,
+        idempotency_key=idempotency_key,
+        requested_at=now,
+        started_at=now,
+        completed_at=now,
+        duration_ms=0,
+        restored_scenario="service_degradation",
+        restored_state={},
+        error_message=None,
+    )
+    session.add(rollback_exec)
+    await session.flush()
+
+    start_event = RollbackExecutionEvent(
+        rollback_execution_id=rollback_exec.id,
+        execution_id=assessment.execution_id,
+        actor=requested_by,
+        event_type="rollback_execution_started",
+        previous_status=None,
+        new_status=RollbackExecutionStatus.RUNNING.value,
+        details={
+            "assessment_id": str(assessment.id),
+            "idempotency_key": idempotency_key,
+            "reason": reason,
+            "target_service_url": settings.demo_service_url,
+        },
+        created_at=now,
+    )
+    session.add(start_event)
+    await session.commit()
+    rollback_exec_id = rollback_exec.id
+
+    # 4. Execute network call to isolated simulator outside DB transaction
+    rollback_error: str | None = None
+    rb_result: dict[str, Any] | None = None
+
+    try:
+        url = f"{settings.demo_service_url}/control/rollback"
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(url)
+            if resp.status_code == 200:
+                rb_result = resp.json()
+            else:
+                rollback_error = (
+                    f"Demo simulator returned HTTP {resp.status_code}: {resp.text}"
+                )
+    except httpx.ConnectError:
+        rollback_error = (
+            f"Failed to connect to demo telemetry simulator at {settings.demo_service_url}. "
+            "Ensure 'scripts/simulate_service.py' is running on port 8001."
+        )
+    except Exception as exc:  # noqa: BLE001
+        rollback_error = f"Demo rollback execution failure: {type(exc).__name__}: {exc}"
+
+    duration_ms = max(1, int((time.perf_counter() - t0) * 1000))
+    completed_at = datetime.now(UTC)
+
+    # 5. Persist terminal results and audit event
+    rb_record = await session.get(RollbackExecution, rollback_exec_id)
+    if rb_record is None:
+        raise ValueError(f"Rollback execution record '{rollback_exec_id}' disappeared")
+
+    rb_record.completed_at = completed_at
+    rb_record.duration_ms = duration_ms
+
+    if rollback_error is not None or rb_result is None:
+        rb_record.status = RollbackExecutionStatus.FAILED.value
+        rb_record.error_message = rollback_error
+        terminal_event_type = "rollback_execution_failed"
+        terminal_details = {
+            "error": rollback_error,
+            "duration_ms": duration_ms,
+        }
+    else:
+        rb_record.status = RollbackExecutionStatus.EXECUTED.value
+        rb_record.restored_scenario = rb_result.get(
+            "restored_scenario", "service_degradation"
+        )
+        rb_record.restored_state = rb_result.get("current_state", {})
+        terminal_event_type = "rollback_execution_completed"
+        terminal_details = {
+            "restored_scenario": rb_record.restored_scenario,
+            "restored_state": rb_record.restored_state,
+            "duration_ms": duration_ms,
+            "reason": reason,
+        }
+
+    completion_event = RollbackExecutionEvent(
+        rollback_execution_id=rb_record.id,
+        execution_id=assessment.execution_id,
+        actor=requested_by,
+        event_type=terminal_event_type,
+        previous_status=RollbackExecutionStatus.RUNNING.value,
+        new_status=rb_record.status,
+        details=terminal_details,
+        created_at=completed_at,
+    )
+    session.add(completion_event)
+    await session.commit()
+    await session.refresh(rb_record)
+
+    return rb_record, False
+
+
+async def get_rollback_execution(
+    session: AsyncSession,
+    rollback_exec_id: UUID,
+) -> RollbackExecution | None:
+    return await session.get(RollbackExecution, rollback_exec_id)
+
+
+async def list_rollback_executions(
+    session: AsyncSession,
+    execution_id: UUID | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[RollbackExecution]:
+    query = select(RollbackExecution).order_by(desc(RollbackExecution.requested_at))
+    if execution_id:
+        query = query.where(RollbackExecution.execution_id == execution_id)
+    query = query.limit(limit).offset(offset)
+    result = await session.execute(query)
+    return list(result.scalars().all())

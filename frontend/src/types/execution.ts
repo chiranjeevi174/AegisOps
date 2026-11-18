@@ -1,9 +1,10 @@
-export type ExecutionMode = "simulation" | "live_diagnostic";
+export type ExecutionMode = "simulation" | "live_diagnostic" | "demo_execution";
 export type ExecutionStatus =
   | "requested"
   | "running"
   | "simulated"
   | "diagnosed"
+  | "executed"
   | "completed"
   | "failed"
   | "rejected"
@@ -49,6 +50,7 @@ export interface Execution {
 export interface ExecutionDetail extends Execution {
   simulation_result?: Record<string, any> | null;
   diagnostic_result?: Record<string, any> | null;
+  execution_result?: Record<string, any> | null;
 }
 
 export interface ExecutionEvent {
@@ -76,6 +78,15 @@ export interface SimulateExecutionInput {
 }
 
 export interface DiagnoseExecutionInput {
+  approval_id: string;
+  incident_id: string;
+  operation_id: string;
+  recommendation_index: number;
+  parameters?: Record<string, any>;
+  idempotency_key: string;
+}
+
+export interface ExecuteDemoInput {
   approval_id: string;
   incident_id: string;
   operation_id: string;

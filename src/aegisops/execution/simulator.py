@@ -157,4 +157,71 @@ def simulate_operation(
             },
         )
 
+    if operation_id in ("remediate_service_degradation", "restart_demo_service"):
+        service = validated_params.get("service_name", "api-service")
+        target_scenario = validated_params.get("target_scenario", "healthy")
+        return SimulationResult(
+            operation_id=operation_id,
+            mode="simulation",
+            parameters=validated_params,
+            intended_purpose="Simulate resetting demo service metrics and restoring baseline health on isolated simulator.",
+            target_scope=f"Service: {service} (target scenario: {target_scenario})",
+            expected_observations=[
+                "Simulated transition from degraded state to healthy baseline",
+                "Simulated CPU drop from >80% to 25%",
+                "Simulated error rate reduction to 0.001",
+                "Simulated service availability restored to 1.0 (UP)",
+            ],
+            risk_assessment="Low risk isolated dry-run simulation of remediation action.",
+            actual_infrastructure_access=False,
+            system_changes_performed=False,
+            dry_run=True,
+            status="simulated_success",
+            simulated_output={
+                "action": operation_id,
+                "service": service,
+                "target_scenario": target_scenario,
+                "predicted_metrics": {
+                    "cpu_percent": 25,
+                    "latency_seconds": 0.08,
+                    "error_rate": 0.001,
+                    "service_up": 1,
+                },
+                "note": "Simulation mode: modeled against isolated demo telemetry simulator.",
+            },
+        )
+
+    if operation_id == "scale_demo_workload":
+        service = validated_params.get("service_name", "api-service")
+        replicas = validated_params.get("replicas", 3)
+        return SimulationResult(
+            operation_id=operation_id,
+            mode="simulation",
+            parameters=validated_params,
+            intended_purpose="Simulate scaling worker replicas to distribute compute load on isolated demo service.",
+            target_scope=f"Service: {service} (replicas: {replicas})",
+            expected_observations=[
+                f"Simulate horizontal scale-out to {replicas} replicas",
+                "Simulate CPU utilization reduction proportional to capacity increase",
+                "Simulate queue latency stabilization",
+            ],
+            risk_assessment="Low risk isolated dry-run simulation of workload scaling.",
+            actual_infrastructure_access=False,
+            system_changes_performed=False,
+            dry_run=True,
+            status="simulated_success",
+            simulated_output={
+                "action": operation_id,
+                "service": service,
+                "replicas": replicas,
+                "predicted_metrics": {
+                    "cpu_percent": 30,
+                    "latency_seconds": 0.12,
+                    "error_rate": 0.001,
+                    "service_up": 1,
+                },
+                "note": "Simulation mode: modeled capacity scale-out on demo simulator.",
+            },
+        )
+
     raise ValueError(f"Unhandled allowlisted operation: {op_def.id}")

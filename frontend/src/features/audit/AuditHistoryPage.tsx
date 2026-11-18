@@ -40,7 +40,7 @@ export const AuditHistoryPage: React.FC = () => {
       case "execution":
         return <Badge variant="primary">EXECUTION</Badge>;
       case "verification":
-        return <Badge variant="info">VERIFICATION</Badge>;
+        return <Badge variant="low">VERIFICATION</Badge>;
       case "rollback":
         return <Badge variant="secondary">ROLLBACK</Badge>;
       default:
@@ -49,28 +49,28 @@ export const AuditHistoryPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-obsidian-text select-none font-sans">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-100 tracking-tight flex items-center gap-2">
-            <History className="w-5 h-5 text-indigo-400" />
+          <h1 className="text-xl font-bold text-obsidian-text tracking-tight flex items-center gap-2">
+            <History className="w-5 h-5 text-copper-400" />
             Platform Immutable Audit Trail
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-obsidian-muted mt-1">
             Tamper-resistant append-only event log capturing every approval decision, execution run, verification check, and rollback evaluation.
           </p>
         </div>
 
         {/* Category Tabs */}
-        <div className="flex flex-wrap gap-1 p-1 bg-slate-900 border border-slate-800 rounded-lg text-xs">
+        <div className="flex flex-wrap gap-1 p-1 bg-obsidian-900 border border-obsidian-700 rounded-lg text-xs font-mono">
           {["all", "approval", "execution", "verification", "rollback"].map((cat) => (
             <button
               key={cat}
               onClick={() => setCategoryFilter(cat)}
-              className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-md font-medium text-[11px] transition-colors ${
                 categoryFilter === cat
-                  ? "bg-indigo-600 text-white"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-copper-400 text-obsidian-950 font-bold shadow-copper-sm"
+                  : "text-obsidian-muted hover:text-obsidian-text hover:bg-obsidian-800"
               }`}
             >
               {cat.toUpperCase()}
@@ -80,27 +80,27 @@ export const AuditHistoryPage: React.FC = () => {
       </div>
 
       {/* Search Filter */}
-      <Card>
+      <Card className="bg-obsidian-800 border-obsidian-700">
         <CardContent className="p-3">
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-obsidian-muted absolute left-3 top-2.5" />
             <input
               type="text"
               placeholder="Search by event type, actor identity, or resource UUID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full pl-9 pr-3 py-2 bg-obsidian-900 border border-obsidian-700 rounded-lg text-xs text-obsidian-text placeholder-obsidian-muted focus:outline-none focus:ring-1 focus:ring-copper-400 focus:border-copper-400 transition-colors"
             />
           </div>
         </CardContent>
       </Card>
 
       {/* Events Table */}
-      <Card>
-        <CardHeader className="py-3 px-4">
+      <Card className="bg-obsidian-800 border-obsidian-700">
+        <CardHeader className="py-3 px-4 border-b border-obsidian-700">
           <CardTitle className="text-sm flex items-center gap-2">
             <span>Audit Events</span>
-            <span className="text-xs font-mono text-slate-500">
+            <span className="text-xs font-mono text-copper-400 font-semibold">
               ({filteredEvents.length})
             </span>
           </CardTitle>
@@ -108,8 +108,8 @@ export const AuditHistoryPage: React.FC = () => {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">
-              <Skeleton className="h-10" />
-              <Skeleton className="h-10" />
+              <Skeleton className="h-10 bg-obsidian-750" />
+              <Skeleton className="h-10 bg-obsidian-750" />
             </div>
           ) : filteredEvents.length === 0 ? (
             <EmptyState
@@ -119,7 +119,7 @@ export const AuditHistoryPage: React.FC = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/70 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                <thead className="bg-obsidian-900 border-b border-obsidian-700 text-obsidian-muted font-semibold uppercase tracking-wider font-mono text-[11px]">
                   <tr>
                     <th className="py-3 px-4">Category</th>
                     <th className="py-3 px-4">Event Type</th>
@@ -130,33 +130,33 @@ export const AuditHistoryPage: React.FC = () => {
                     <th className="py-3 px-4 text-right">Details</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 font-mono">
+                <tbody className="divide-y divide-obsidian-700/60 font-mono">
                   {filteredEvents.map((ev) => (
-                    <tr key={ev.id} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={ev.id} className="hover:bg-obsidian-750/50 transition-colors">
                       <td className="py-3 px-4 whitespace-nowrap">
                         {getCategoryBadge(ev.category)}
                       </td>
-                      <td className="py-3 px-4 font-sans font-semibold text-indigo-300">
+                      <td className="py-3 px-4 font-sans font-semibold text-copper-400">
                         {ev.event_type}
                       </td>
-                      <td className="py-3 px-4 font-sans text-slate-200">{ev.actor}</td>
-                      <td className="py-3 px-4 text-slate-400">
+                      <td className="py-3 px-4 font-sans text-obsidian-text font-mono text-[11px]">{ev.actor}</td>
+                      <td className="py-3 px-4 text-obsidian-muted">
                         {ev.previous_status ? (
                           <span>
                             {ev.previous_status} &rarr;{" "}
-                            <strong className="text-slate-200">{ev.new_status}</strong>
+                            <strong className="text-obsidian-text font-semibold">{ev.new_status}</strong>
                           </span>
                         ) : (
-                          <strong className="text-slate-200">{ev.new_status || "—"}</strong>
+                          <strong className="text-obsidian-text font-semibold">{ev.new_status || "—"}</strong>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-slate-500">{ev.resource_id.slice(0, 8)}...</td>
-                      <td className="py-3 px-4 font-sans text-slate-400">
+                      <td className="py-3 px-4 text-obsidian-muted">{ev.resource_id.slice(0, 8)}...</td>
+                      <td className="py-3 px-4 font-sans text-obsidian-muted text-[11px]">
                         {new Date(ev.created_at).toLocaleString()}
                       </td>
                       <td className="py-3 px-4 text-right">
                         <Button
-                          variant="ghost"
+                          variant="secondary"
                           size="sm"
                           onClick={() => setSelectedEvent(ev)}
                         >
@@ -183,30 +183,30 @@ export const AuditHistoryPage: React.FC = () => {
           maxWidth="md"
         >
           <div className="space-y-3 text-xs">
-            <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-1.5 font-mono">
+            <div className="p-3 bg-obsidian-900 rounded-lg border border-obsidian-700 space-y-1.5 font-mono">
               <div className="flex justify-between">
-                <span className="text-slate-500">Category:</span>
-                <span className="text-indigo-400 uppercase">{selectedEvent.category}</span>
+                <span className="text-obsidian-muted">Category:</span>
+                <span className="text-copper-400 uppercase font-semibold">{selectedEvent.category}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Actor:</span>
-                <span className="text-slate-200">{selectedEvent.actor}</span>
+                <span className="text-obsidian-muted">Actor:</span>
+                <span className="text-obsidian-text">{selectedEvent.actor}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Resource ID:</span>
-                <span className="text-slate-300">{selectedEvent.resource_id}</span>
+                <span className="text-obsidian-muted">Resource ID:</span>
+                <span className="text-copper-300 break-all">{selectedEvent.resource_id}</span>
               </div>
               {selectedEvent.incident_id && (
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Incident ID:</span>
-                  <span className="text-slate-300">{selectedEvent.incident_id}</span>
+                  <span className="text-obsidian-muted">Incident ID:</span>
+                  <span className="text-obsidian-secondary">{selectedEvent.incident_id}</span>
                 </div>
               )}
             </div>
 
-            <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-1">
-              <span className="font-semibold text-slate-300 block mb-1">Sanitized Details:</span>
-              <pre className="p-2.5 bg-slate-900 rounded border border-slate-800 font-mono text-emerald-300 text-[11px] overflow-x-auto">
+            <div className="p-3 bg-obsidian-900 rounded-lg border border-obsidian-700 space-y-1">
+              <span className="font-semibold text-obsidian-muted block mb-1 font-mono text-[11px]">Sanitized Details:</span>
+              <pre className="p-2.5 bg-obsidian-950 rounded border border-obsidian-700 font-mono text-status-healthy text-[11px] overflow-x-auto">
                 {JSON.stringify(selectedEvent.details, null, 2)}
               </pre>
             </div>

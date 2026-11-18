@@ -92,6 +92,7 @@ async def validate_execution_eligibility_for_verification(
     terminal_statuses = {
         ExecutionStatus.SIMULATED.value,
         ExecutionStatus.DIAGNOSED.value,
+        ExecutionStatus.EXECUTED.value,
         ExecutionStatus.FAILED.value,
         ExecutionStatus.TIMED_OUT.value,
         ExecutionStatus.REJECTED.value,
@@ -217,8 +218,11 @@ async def execute_verification(
         await session.refresh(verification)
         return verification, False
 
-    # Non-diagnosed terminal status branch (e.g. failed or timed out during execution)
-    if execution.status != ExecutionStatus.DIAGNOSED.value:
+    # Non-successful terminal status branch (e.g. failed or timed out during execution)
+    if execution.status not in (
+        ExecutionStatus.DIAGNOSED.value,
+        ExecutionStatus.EXECUTED.value,
+    ):
         duration_ms = max(1, int((time.perf_counter() - t0) * 1000))
         completed_time = datetime.now(UTC)
 

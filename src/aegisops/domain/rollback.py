@@ -68,16 +68,8 @@ class RollbackAssessment(Base):
             name="valid_rollback_assessment_status",
         ),
         CheckConstraint(
-            "rollback_execution_enabled = FALSE",
-            name="ck_rollback_execution_disabled",
-        ),
-        CheckConstraint(
             "human_authorization_required = TRUE",
             name="ck_rollback_human_auth_required",
-        ),
-        CheckConstraint(
-            "system_changes_performed = FALSE",
-            name="ck_rollback_system_changes_disabled",
         ),
         UniqueConstraint(
             "execution_id",

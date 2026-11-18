@@ -23,6 +23,7 @@ from aegisops.db.base import Base
 class ExecutionMode(StrEnum):
     SIMULATION = "simulation"
     LIVE_DIAGNOSTIC = "live_diagnostic"
+    DEMO_EXECUTION = "demo_execution"
 
 
 class ExecutionStatus(StrEnum):
@@ -30,6 +31,7 @@ class ExecutionStatus(StrEnum):
     RUNNING = "running"
     SIMULATED = "simulated"
     DIAGNOSED = "diagnosed"
+    EXECUTED = "executed"
     FAILED = "failed"
     REJECTED = "rejected"
     TIMED_OUT = "timed_out"
@@ -40,11 +42,11 @@ class RemediationExecution(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "mode IN ('simulation', 'live_diagnostic')",
+            "mode IN ('simulation', 'live_diagnostic', 'demo_execution')",
             name="valid_execution_mode",
         ),
         CheckConstraint(
-            "status IN ('pending', 'running', 'simulated', 'diagnosed', 'failed', 'rejected', 'timed_out')",
+            "status IN ('pending', 'running', 'simulated', 'diagnosed', 'executed', 'failed', 'rejected', 'timed_out')",
             name="valid_execution_status",
         ),
         UniqueConstraint(
@@ -150,6 +152,11 @@ class RemediationExecution(Base):
     )
 
     diagnostic_result: Mapped[dict | None] = mapped_column(
+        JSON().with_variant(JSONB, "postgresql"),
+        nullable=True,
+    )
+
+    execution_result: Mapped[dict | None] = mapped_column(
         JSON().with_variant(JSONB, "postgresql"),
         nullable=True,
     )

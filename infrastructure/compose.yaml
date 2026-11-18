@@ -1,4 +1,7 @@
 
+# AegisOps Development Infrastructure Stack (isolated from aegisops-prod)
+name: infrastructure
+
 services:
   postgres:
     image: postgres:17-alpine

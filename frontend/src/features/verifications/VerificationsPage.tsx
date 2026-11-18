@@ -103,14 +103,14 @@ export const VerificationsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-obsidian-text select-none font-sans">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-100 tracking-tight flex items-center gap-2">
-            <ClipboardCheck className="w-5 h-5 text-indigo-400" />
+          <h1 className="text-xl font-bold text-obsidian-text tracking-tight flex items-center gap-2">
+            <ClipboardCheck className="w-5 h-5 text-copper-400" />
             Post-Execution Evidence Verification
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-obsidian-muted mt-1">
             Statistical comparison between pre-execution baseline and post-execution observation windows.
           </p>
         </div>
@@ -138,11 +138,11 @@ export const VerificationsPage: React.FC = () => {
       )}
 
       {/* Verifications Table */}
-      <Card>
-        <CardHeader className="py-3 px-4">
+      <Card className="bg-obsidian-800 border-obsidian-700">
+        <CardHeader className="py-3 px-4 border-b border-obsidian-700">
           <CardTitle className="text-sm flex items-center gap-2">
             <span>Recorded Verifications</span>
-            <span className="text-xs font-mono text-slate-500">
+            <span className="text-xs font-mono text-copper-400 font-semibold">
               ({verifications?.length || 0})
             </span>
           </CardTitle>
@@ -150,8 +150,8 @@ export const VerificationsPage: React.FC = () => {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">
-              <Skeleton className="h-10" />
-              <Skeleton className="h-10" />
+              <Skeleton className="h-10 bg-obsidian-750" />
+              <Skeleton className="h-10 bg-obsidian-750" />
             </div>
           ) : !verifications || verifications.length === 0 ? (
             <EmptyState
@@ -161,7 +161,7 @@ export const VerificationsPage: React.FC = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/70 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                <thead className="bg-obsidian-900 border-b border-obsidian-700 text-obsidian-muted font-semibold uppercase tracking-wider font-mono text-[11px]">
                   <tr>
                     <th className="py-3 px-4">Outcome</th>
                     <th className="py-3 px-4">Execution Mode</th>
@@ -172,24 +172,24 @@ export const VerificationsPage: React.FC = () => {
                     <th className="py-3 px-4 text-right">Details</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-obsidian-700/60 font-sans">
                   {verifications.map((v) => (
-                    <tr key={v.id} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={v.id} className="hover:bg-obsidian-750/50 transition-colors">
                       <td className="py-3 px-4 whitespace-nowrap">
                         {getOutcomeBadge(v.outcome)}
                       </td>
-                      <td className="py-3 px-4 uppercase font-mono text-slate-300">
+                      <td className="py-3 px-4 uppercase font-mono text-copper-300">
                         {v.execution_mode}
                       </td>
-                      <td className="py-3 px-4 font-mono text-slate-300">{v.operation_id}</td>
-                      <td className="py-3 px-4 font-mono text-slate-400">{v.duration_ms} ms</td>
-                      <td className="py-3 px-4 text-slate-300">{v.requested_by}</td>
-                      <td className="py-3 px-4 text-slate-400">
+                      <td className="py-3 px-4 font-mono text-obsidian-text">{v.operation_id}</td>
+                      <td className="py-3 px-4 font-mono text-obsidian-muted">{v.duration_ms} ms</td>
+                      <td className="py-3 px-4 text-obsidian-text font-mono text-[11px]">{v.requested_by}</td>
+                      <td className="py-3 px-4 text-obsidian-muted font-mono text-[11px]">
                         {new Date(v.requested_at).toLocaleString()}
                       </td>
                       <td className="py-3 px-4 text-right">
                         <Button
-                          variant="ghost"
+                          variant="secondary"
                           size="sm"
                           onClick={() => handleInspect(v)}
                         >
@@ -253,12 +253,12 @@ export const VerificationsPage: React.FC = () => {
             onChange={(e) => setMinSamples(Number(e.target.value))}
           />
 
-          <div className="p-3 bg-slate-950 border border-slate-800 rounded-lg text-slate-400">
-            <span className="font-semibold text-slate-300 block mb-0.5">Statistical Safety Policy:</span>
+          <div className="p-3 bg-obsidian-900 border border-obsidian-700 rounded-lg text-obsidian-secondary">
+            <span className="font-semibold text-copper-400 block mb-0.5 font-mono">Statistical Safety Policy:</span>
             Verification classifies observed directions (e.g. improved, degraded, unchanged) with strict mathematical tolerance (&epsilon; = 0.01).
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+          <div className="flex justify-end gap-2 pt-3 border-t border-obsidian-700">
             <Button
               type="button"
               variant="ghost"
@@ -291,43 +291,43 @@ export const VerificationsPage: React.FC = () => {
           <div className="space-y-4 text-xs">
             {/* Prominent Truthful Safeguards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
-                <span className="text-slate-500 font-semibold block">Remediation Success Confirmed</span>
-                <span className="text-rose-400 font-bold text-sm">
+              <div className="p-3 rounded-lg bg-obsidian-900 border border-obsidian-700">
+                <span className="text-obsidian-muted font-semibold block font-mono text-[11px]">Remediation Success Confirmed</span>
+                <span className="text-status-critical font-bold text-sm font-mono mt-0.5 block">
                   {selectedVerification.remediation_success_confirmed ? "TRUE" : "FALSE"}
                 </span>
-                <span className="text-[11px] text-slate-500 block mt-0.5">
+                <span className="text-[11px] text-obsidian-muted block mt-0.5">
                   Diagnostic operations do not modify systems
                 </span>
               </div>
-              <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
-                <span className="text-slate-500 font-semibold block">Human Review Required</span>
-                <span className="text-amber-400 font-bold text-sm">
+              <div className="p-3 rounded-lg bg-obsidian-900 border border-obsidian-700">
+                <span className="text-obsidian-muted font-semibold block font-mono text-[11px]">Human Review Required</span>
+                <span className="text-status-warning font-bold text-sm font-mono mt-0.5 block">
                   {selectedVerification.human_review_required ? "TRUE (Mandatory)" : "FALSE"}
                 </span>
-                <span className="text-[11px] text-slate-500 block mt-0.5">
+                <span className="text-[11px] text-obsidian-muted block mt-0.5">
                   Final sign-off remains with operator
                 </span>
               </div>
             </div>
 
             {/* Criteria & Windows */}
-            <div className="p-3.5 bg-slate-950 rounded-lg border border-slate-800 font-mono space-y-1">
+            <div className="p-3.5 bg-obsidian-900 rounded-lg border border-obsidian-700 font-mono space-y-1">
               <div className="flex justify-between">
-                <span className="text-slate-500">Baseline Window:</span>
-                <span className="text-slate-200">
+                <span className="text-obsidian-muted">Baseline Window:</span>
+                <span className="text-copper-300">
                   {selectedVerification.verification_criteria.baseline_window_minutes}m
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Follow-up Window:</span>
-                <span className="text-slate-200">
+                <span className="text-obsidian-muted">Follow-up Window:</span>
+                <span className="text-copper-300">
                   {selectedVerification.verification_criteria.followup_window_minutes}m
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Query Resolution Step:</span>
-                <span className="text-slate-200">
+                <span className="text-obsidian-muted">Query Resolution Step:</span>
+                <span className="text-obsidian-text">
                   {selectedVerification.verification_criteria.step}
                 </span>
               </div>
@@ -335,11 +335,11 @@ export const VerificationsPage: React.FC = () => {
 
             {/* Metric Comparison Data */}
             {selectedVerification.metric_comparison && (
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-lg space-y-2">
-                <span className="font-semibold text-slate-200 block text-sm">
+              <div className="p-4 bg-obsidian-900 border border-obsidian-700 rounded-lg space-y-2">
+                <span className="font-semibold text-obsidian-text block text-sm font-mono">
                   Statistical Metric Comparison:
                 </span>
-                <pre className="p-3 bg-slate-900 border border-slate-800 rounded text-emerald-300 font-mono text-[11px] overflow-x-auto">
+                <pre className="p-3 bg-obsidian-950 border border-obsidian-700 rounded text-status-healthy font-mono text-[11px] overflow-x-auto">
                   {JSON.stringify(selectedVerification.metric_comparison, null, 2)}
                 </pre>
               </div>
@@ -348,8 +348,8 @@ export const VerificationsPage: React.FC = () => {
             {/* Limitations & Observations */}
             <div className="space-y-2">
               {selectedVerification.limitations?.map((lim, i) => (
-                <div key={i} className="p-2.5 rounded bg-slate-950 border border-slate-800 text-slate-400 flex items-start gap-2">
-                  <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                <div key={i} className="p-2.5 rounded bg-obsidian-900 border border-obsidian-700 text-obsidian-secondary flex items-start gap-2">
+                  <Info className="w-4 h-4 text-copper-400 shrink-0 mt-0.5" />
                   <span>{lim}</span>
                 </div>
               ))}
@@ -357,18 +357,18 @@ export const VerificationsPage: React.FC = () => {
 
             {/* Audit Trail */}
             {events && events.length > 0 && (
-              <div className="pt-2 border-t border-slate-800 space-y-2">
-                <h4 className="font-semibold text-slate-400 uppercase tracking-wider text-[11px]">
+              <div className="pt-2 border-t border-obsidian-700 space-y-2">
+                <h4 className="font-semibold text-obsidian-muted uppercase tracking-wider text-[11px] font-mono">
                   Verification Audit Events ({events.length})
                 </h4>
                 <div className="space-y-1 max-h-36 overflow-y-auto">
                   {events.map((ev) => (
                     <div
                       key={ev.id}
-                      className="p-2 rounded bg-slate-950 border border-slate-800 text-[11px] flex items-center justify-between"
+                      className="p-2 rounded bg-obsidian-900 border border-obsidian-700 text-[11px] flex items-center justify-between"
                     >
-                      <span className="font-semibold text-indigo-400">{ev.event_type}</span>
-                      <span className="text-slate-500 font-mono">
+                      <span className="font-semibold text-copper-400 font-mono">{ev.event_type}</span>
+                      <span className="text-obsidian-muted font-mono">
                         {new Date(ev.created_at).toLocaleTimeString()}
                       </span>
                     </div>

@@ -82,16 +82,21 @@ export const IncidentDetailPage: React.FC = () => {
     },
   });
 
-  // Read latest cached analysis or retrieve from approval if available
+  // Read latest cached analysis
   const { data: liveAnalysis } = useQuery<IncidentAnalysisResult | null>({
     queryKey: ["incidents", id, "analysis"],
-    queryFn: () => null, // populated by analyzeMutation or transient state
+    queryFn: () => null,
     enabled: false,
   });
 
   // Create Approval Request mutation
   const createApprovalMutation = useMutation({
-    mutationFn: () => incidentsApi.createApproval(id!),
+    mutationFn: () => {
+      const payload = liveAnalysis?.remediation_plan
+        ? { plan: liveAnalysis.remediation_plan, rca: liveAnalysis.rca }
+        : undefined;
+      return incidentsApi.createApproval(id!, payload);
+    },
     onSuccess: () => {
       setActionError(null);
       queryClient.invalidateQueries({ queryKey: ["approvals", { incident_id: id }] });
@@ -106,19 +111,19 @@ export const IncidentDetailPage: React.FC = () => {
   if (isLoadingIncident) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-96 w-full" />
+        <Skeleton className="h-8 w-48 bg-obsidian-800" />
+        <Skeleton className="h-24 w-full bg-obsidian-800" />
+        <Skeleton className="h-96 w-full bg-obsidian-800" />
       </div>
     );
   }
 
   if (isIncidentError || !incident) {
     return (
-      <div className="p-8 text-center">
-        <AlertCircle className="w-10 h-10 text-rose-500 mx-auto mb-2" />
-        <h2 className="text-base font-semibold text-slate-200">Incident Not Found</h2>
-        <p className="text-xs text-slate-400 mt-1">The requested incident ID does not exist in PostgreSQL.</p>
+      <div className="p-8 text-center text-obsidian-text">
+        <AlertCircle className="w-10 h-10 text-status-critical mx-auto mb-2" />
+        <h2 className="text-base font-semibold text-obsidian-text">Incident Not Found</h2>
+        <p className="text-xs text-obsidian-muted mt-1">The requested incident ID does not exist in PostgreSQL.</p>
         <Link to="/incidents" className="mt-4 inline-block">
           <Button variant="secondary" size="sm">
             <ArrowLeft className="w-4 h-4" /> Back to Incidents
@@ -128,47 +133,46 @@ export const IncidentDetailPage: React.FC = () => {
     );
   }
 
-  // Derive latest plan snapshot from the most recent approval if available
   const latestApproval = approvals && approvals.length > 0 ? approvals[0] : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-obsidian-text select-none font-sans">
       {/* Top Breadcrumb & Action Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link to="/incidents">
-            <button className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors">
+            <button className="p-2 rounded-lg bg-obsidian-850 border border-obsidian-700 hover:bg-obsidian-750 text-obsidian-muted hover:text-copper-400 transition-colors">
               <ArrowLeft className="w-4 h-4" />
             </button>
           </Link>
           <div>
             <div className="flex items-center gap-2">
               <Badge variant={incident.severity}>{incident.severity.toUpperCase()}</Badge>
-              <h1 className="text-lg font-bold text-slate-100">{incident.title}</h1>
+              <h1 className="text-lg font-bold text-obsidian-text">{incident.title}</h1>
               <Badge
                 variant={
                   incident.status === "open"
                     ? "high"
                     : incident.status === "investigating"
-                    ? "medium"
+                    ? "info"
                     : "low"
                 }
               >
                 {incident.status.toUpperCase()}
               </Badge>
             </div>
-            <p className="text-xs font-mono text-slate-500 mt-0.5">UUID: {incident.id}</p>
+            <p className="text-xs font-mono text-obsidian-muted mt-0.5">UUID: {incident.id}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <Button
-            variant="secondary"
+            variant="ai"
             size="sm"
             onClick={() => analyzeMutation.mutate()}
             isLoading={analyzeMutation.isPending}
           >
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+            <Sparkles className="w-3.5 h-3.5" />
             Run AI Investigation & RCA
           </Button>
           <Button
@@ -190,7 +194,7 @@ export const IncidentDetailPage: React.FC = () => {
       )}
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-slate-800 text-xs font-medium space-x-1 overflow-x-auto">
+      <div className="flex border-b border-obsidian-700 text-xs font-medium space-x-1 overflow-x-auto">
         {(
           [
             { id: "overview", label: "Incident Overview" },
@@ -205,10 +209,10 @@ export const IncidentDetailPage: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2.5 border-b-2 transition-colors whitespace-nowrap ${
+            className={`px-4 py-2.5 border-b-2 transition-colors whitespace-nowrap font-mono text-[11px] ${
               activeTab === tab.id
-                ? "border-indigo-500 text-indigo-300 font-semibold"
-                : "border-transparent text-slate-400 hover:text-slate-200"
+                ? "border-copper-400 text-copper-400 font-bold bg-copper-400/5"
+                : "border-transparent text-obsidian-muted hover:text-obsidian-text hover:bg-obsidian-800/40"
             }`}
           >
             {tab.label}
@@ -219,31 +223,31 @@ export const IncidentDetailPage: React.FC = () => {
       {/* Tab: Overview */}
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2 space-y-6">
-            <CardHeader className="py-4">
+          <Card className="lg:col-span-2 space-y-6 bg-obsidian-800 border-obsidian-700">
+            <CardHeader className="py-4 border-b border-obsidian-700">
               <CardTitle>Description & Context</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-slate-300 leading-relaxed bg-slate-950/60 p-4 rounded-lg border border-slate-800 font-mono text-xs">
+              <p className="text-xs text-obsidian-secondary leading-relaxed bg-obsidian-900 p-4 rounded-lg border border-obsidian-700 font-mono">
                 {incident.description}
               </p>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
-                <div className="p-3 rounded-lg bg-slate-950/40 border border-slate-800">
-                  <span className="text-[11px] text-slate-500 block">Source</span>
-                  <span className="text-xs font-medium text-slate-200 uppercase mt-0.5 block">
+                <div className="p-3 rounded-lg bg-obsidian-900 border border-obsidian-700">
+                  <span className="text-[11px] text-obsidian-muted block font-mono">Source</span>
+                  <span className="text-xs font-semibold text-obsidian-text uppercase mt-0.5 block">
                     {incident.source}
                   </span>
                 </div>
-                <div className="p-3 rounded-lg bg-slate-950/40 border border-slate-800">
-                  <span className="text-[11px] text-slate-500 block">Created At</span>
-                  <span className="text-xs font-medium text-slate-200 mt-0.5 block">
+                <div className="p-3 rounded-lg bg-obsidian-900 border border-obsidian-700">
+                  <span className="text-[11px] text-obsidian-muted block font-mono">Created At</span>
+                  <span className="text-xs font-medium text-obsidian-text mt-0.5 block">
                     {new Date(incident.created_at).toLocaleString()}
                   </span>
                 </div>
-                <div className="p-3 rounded-lg bg-slate-950/40 border border-slate-800">
-                  <span className="text-[11px] text-slate-500 block">Alert State</span>
-                  <span className="text-xs font-medium text-slate-200 mt-0.5 block">
+                <div className="p-3 rounded-lg bg-obsidian-900 border border-obsidian-700">
+                  <span className="text-[11px] text-obsidian-muted block font-mono">Alert State</span>
+                  <span className="text-xs font-medium text-copper-300 mt-0.5 block">
                     {incident.alert_state || "Manual Entry"}
                   </span>
                 </div>
@@ -252,28 +256,28 @@ export const IncidentDetailPage: React.FC = () => {
           </Card>
 
           {/* Alert Context Sidebar */}
-          <Card>
-            <CardHeader className="py-4">
+          <Card className="bg-obsidian-800 border-obsidian-700">
+            <CardHeader className="py-4 border-b border-obsidian-700">
               <CardTitle>Alertmanager Metadata</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-xs">
               <div>
-                <span className="text-slate-500 block">Fingerprint:</span>
-                <span className="font-mono text-slate-300 break-all">
+                <span className="text-obsidian-muted block font-mono text-[11px]">Fingerprint:</span>
+                <span className="font-mono text-obsidian-secondary break-all text-[11px]">
                   {incident.alert_fingerprint || "None (Manually reported)"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 block">Alert Started:</span>
-                <span className="text-slate-300">
+                <span className="text-obsidian-muted block font-mono text-[11px]">Alert Started:</span>
+                <span className="text-obsidian-secondary font-mono text-[11px]">
                   {incident.alert_started_at
                     ? new Date(incident.alert_started_at).toLocaleString()
                     : "Not specified"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 block">Last Alert Update:</span>
-                <span className="text-slate-300">
+                <span className="text-obsidian-muted block font-mono text-[11px]">Last Alert Update:</span>
+                <span className="text-obsidian-secondary font-mono text-[11px]">
                   {incident.alert_updated_at
                     ? new Date(incident.alert_updated_at).toLocaleString()
                     : "Not specified"}
@@ -290,30 +294,30 @@ export const IncidentDetailPage: React.FC = () => {
           {liveAnalysis ? (
             <div className="space-y-6">
               {/* Triage & Evidence Snapshot */}
-              <Card>
-                <CardHeader className="py-3">
+              <Card className="bg-obsidian-800 border-obsidian-700">
+                <CardHeader className="py-3.5 border-b border-obsidian-700">
                   <CardTitle className="flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-emerald-400" />
+                    <Activity className="w-4 h-4 text-status-healthy" />
                     Observed Metric Telemetry & Triage Evidence
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                    <div className="p-3 rounded bg-slate-950 border border-slate-800">
-                      <span className="text-slate-500 block">Calculated Priority:</span>
-                      <strong className="text-sm text-indigo-300 font-mono">
+                    <div className="p-3 rounded bg-obsidian-900 border border-obsidian-700">
+                      <span className="text-obsidian-muted block font-mono text-[11px]">Calculated Priority:</span>
+                      <strong className="text-sm text-copper-400 font-mono">
                         {liveAnalysis.priority || "P2"}
                       </strong>
                     </div>
-                    <div className="p-3 rounded bg-slate-950 border border-slate-800">
-                      <span className="text-slate-500 block">Escalation Required:</span>
-                      <strong className="text-sm text-slate-200">
+                    <div className="p-3 rounded bg-obsidian-900 border border-obsidian-700">
+                      <span className="text-obsidian-muted block font-mono text-[11px]">Escalation Required:</span>
+                      <strong className="text-sm text-obsidian-text">
                         {liveAnalysis.requires_escalation ? "YES" : "NO"}
                       </strong>
                     </div>
-                    <div className="p-3 rounded bg-slate-950 border border-slate-800">
-                      <span className="text-slate-500 block">Evidence Collected At:</span>
-                      <span className="text-xs text-slate-300 font-mono">
+                    <div className="p-3 rounded bg-obsidian-900 border border-obsidian-700 sm:col-span-2">
+                      <span className="text-obsidian-muted block font-mono text-[11px]">Evidence Collected At:</span>
+                      <span className="text-xs text-obsidian-secondary font-mono">
                         {liveAnalysis.evidence_collected_at || "Live snapshot"}
                       </span>
                     </div>
@@ -321,12 +325,12 @@ export const IncidentDetailPage: React.FC = () => {
 
                   {liveAnalysis.evidence && (
                     <div className="mt-3">
-                      <h5 className="text-xs font-semibold text-slate-400 mb-2">Metrics Snapshot:</h5>
+                      <h5 className="text-xs font-semibold text-obsidian-muted mb-2 font-mono uppercase tracking-wider">Metrics Snapshot:</h5>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-xs">
                         {Object.entries(liveAnalysis.evidence).map(([key, val]) => (
-                          <div key={key} className="p-2 rounded bg-slate-950/70 border border-slate-800">
-                            <span className="text-slate-500 block truncate">{key}</span>
-                            <span className="text-slate-200 font-bold">{String(val ?? "null")}</span>
+                          <div key={key} className="p-2.5 rounded bg-obsidian-900 border border-obsidian-700">
+                            <span className="text-obsidian-muted block truncate text-[11px]">{key}</span>
+                            <span className="text-copper-300 font-bold">{String(val ?? "null")}</span>
                           </div>
                         ))}
                       </div>
@@ -337,18 +341,18 @@ export const IncidentDetailPage: React.FC = () => {
 
               {/* RCA Findings */}
               {liveAnalysis.rca && (
-                <Card>
-                  <CardHeader className="py-3 flex flex-row items-center justify-between">
+                <Card className="bg-obsidian-800 border-obsidian-700">
+                  <CardHeader className="py-3.5 flex flex-row items-center justify-between border-b border-obsidian-700">
                     <CardTitle className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-indigo-400" />
+                      <Sparkles className="w-4 h-4 text-ai-violet" />
                       Root Cause Analysis (AI Hypotheses)
                     </CardTitle>
-                    <Badge variant="warning">
+                    <Badge variant={liveAnalysis.rca.root_cause_confirmed ? "success" : "warning"}>
                       Root Cause Confirmed: {liveAnalysis.rca.root_cause_confirmed ? "True" : "False"}
                     </Badge>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-xs text-slate-300 bg-slate-950/50 p-3 rounded border border-slate-800">
+                    <p className="text-xs text-obsidian-secondary bg-obsidian-900 p-3 rounded-lg border border-obsidian-700 font-mono">
                       {liveAnalysis.rca.summary}
                     </p>
 
@@ -356,39 +360,39 @@ export const IncidentDetailPage: React.FC = () => {
                       {liveAnalysis.rca.hypotheses?.map((hypo: any, idx: number) => (
                         <div
                           key={idx}
-                          className="p-4 rounded-lg bg-slate-950 border border-slate-800 space-y-2 text-xs"
+                          className="p-4 rounded-lg bg-obsidian-900 border border-obsidian-700 space-y-2 text-xs"
                         >
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-slate-200 text-sm">{hypo.title}</h4>
-                            <Badge variant="info">Confidence: {hypo.confidence}</Badge>
+                            <h4 className="font-semibold text-obsidian-text text-sm">{hypo.title}</h4>
+                            <Badge variant="ai">Confidence: {hypo.confidence}</Badge>
                           </div>
-                          <p className="text-slate-400">{hypo.description}</p>
+                          <p className="text-obsidian-secondary">{hypo.description}</p>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-2">
-                            <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                              <span className="text-emerald-400 font-semibold block mb-1">
+                            <div className="p-2.5 rounded bg-obsidian-850 border border-obsidian-700">
+                              <span className="text-status-healthy font-semibold block mb-1 font-mono text-[11px]">
                                 Supporting Evidence
                               </span>
-                              <ul className="list-disc list-inside text-slate-400 space-y-0.5">
+                              <ul className="list-disc list-inside text-obsidian-secondary space-y-0.5 text-[11px]">
                                 {hypo.supporting_evidence?.map((e: string, i: number) => (
                                   <li key={i}>{e}</li>
                                 ))}
                               </ul>
                             </div>
-                            <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                              <span className="text-rose-400 font-semibold block mb-1">
+                            <div className="p-2.5 rounded bg-obsidian-850 border border-obsidian-700">
+                              <span className="text-status-critical font-semibold block mb-1 font-mono text-[11px]">
                                 Contradicting Evidence
                               </span>
-                              <ul className="list-disc list-inside text-slate-400 space-y-0.5">
+                              <ul className="list-disc list-inside text-obsidian-secondary space-y-0.5 text-[11px]">
                                 {hypo.contradicting_evidence?.map((e: string, i: number) => (
                                   <li key={i}>{e}</li>
                                 ))}
                               </ul>
                             </div>
-                            <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                              <span className="text-amber-400 font-semibold block mb-1">
+                            <div className="p-2.5 rounded bg-obsidian-850 border border-obsidian-700">
+                              <span className="text-status-warning font-semibold block mb-1 font-mono text-[11px]">
                                 Missing Evidence
                               </span>
-                              <ul className="list-disc list-inside text-slate-400 space-y-0.5">
+                              <ul className="list-disc list-inside text-obsidian-secondary space-y-0.5 text-[11px]">
                                 {hypo.missing_evidence?.map((e: string, i: number) => (
                                   <li key={i}>{e}</li>
                                 ))}
@@ -430,10 +434,10 @@ export const IncidentDetailPage: React.FC = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-100">
+                  <h3 className="text-sm font-semibold text-obsidian-text">
                     Latest Approved / Proposed Plan (v{latestApproval.version})
                   </h3>
-                  <p className="text-xs font-mono text-slate-500">
+                  <p className="text-xs font-mono text-obsidian-muted">
                     Hash: {latestApproval.plan_hash}
                   </p>
                 </div>
@@ -442,8 +446,8 @@ export const IncidentDetailPage: React.FC = () => {
                 </Badge>
               </div>
 
-              <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-3">
-                <p className="text-xs text-slate-300">
+              <div className="p-4 bg-obsidian-800 border border-obsidian-700 rounded-xl space-y-3">
+                <p className="text-xs text-obsidian-secondary">
                   Remediation plans in AegisOps are strictly advisory. Actions require explicit operator authorization and binding to an approved plan.
                 </p>
                 <div className="flex gap-2">
@@ -460,19 +464,90 @@ export const IncidentDetailPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          ) : (
-            <EmptyState
-              title="No Remediation Plan Bound"
-              description="Click 'Create Approval Request' to generate and evaluate a safety-validated remediation plan for this incident."
-              action={
+          ) : liveAnalysis?.remediation_plan ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-obsidian-text">
+                    AI-Generated Advisory Remediation Plan
+                  </h3>
+                  <p className="text-xs text-copper-400 font-mono">
+                    Plan generated by AI Investigation & RCA workflow — pending submission for human approval
+                  </p>
+                </div>
+                <Badge variant="warning">
+                  AWAITING APPROVAL SUBMISSION
+                </Badge>
+              </div>
+
+              {/* Remediation actions summary */}
+              <div className="space-y-3">
+                {liveAnalysis.remediation_plan.recommended_actions?.map((act: any, idx: number) => (
+                  <div key={idx} className="p-4 bg-obsidian-800 border border-obsidian-700 rounded-xl space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-obsidian-text text-sm">
+                        Step {act.step_number || idx + 1}: {act.action_type || act.description}
+                      </h4>
+                      <Badge variant="info">Priority: {act.priority || "Medium"}</Badge>
+                    </div>
+                    <p className="text-obsidian-secondary">{act.description}</p>
+                    {act.target_service && (
+                      <p className="text-[11px] font-mono text-copper-300">Target Service: {act.target_service}</p>
+                    )}
+                    {act.risks && act.risks.length > 0 && (
+                      <div className="p-2.5 rounded bg-obsidian-900 border border-obsidian-750 text-[11px]">
+                        <span className="text-status-warning font-semibold block mb-0.5">Identified Risks:</span>
+                        <ul className="list-disc list-inside text-obsidian-muted space-y-0.5">
+                          {act.risks.map((r: string, rIdx: number) => (
+                            <li key={rIdx}>{r}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-4 bg-obsidian-800 border border-copper-500/30 rounded-xl flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-semibold text-obsidian-text">Ready to Request SRE Approval</h4>
+                  <p className="text-[11px] text-obsidian-muted">
+                    Submitting this plan will compute its SHA-256 integrity hash and register a formal pending approval request.
+                  </p>
+                </div>
                 <Button
                   variant="primary"
                   onClick={() => createApprovalMutation.mutate()}
                   isLoading={createApprovalMutation.isPending}
                 >
                   <FileCheck2 className="w-4 h-4" />
-                  Create Approval Request
+                  Submit Plan for Approval
                 </Button>
+              </div>
+            </div>
+          ) : (
+            <EmptyState
+              title="No Remediation Plan Available Yet"
+              description="To generate an advisory remediation plan, run an AI investigation and root-cause analysis first."
+              action={
+                <div className="flex gap-2">
+                  <Button
+                    variant="ai"
+                    onClick={() => analyzeMutation.mutate()}
+                    isLoading={analyzeMutation.isPending}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Run AI Investigation & RCA
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => createApprovalMutation.mutate()}
+                    isLoading={createApprovalMutation.isPending}
+                  >
+                    <FileCheck2 className="w-4 h-4" />
+                    Generate & Submit Approval
+                  </Button>
+                </div>
               }
             />
           )}
@@ -487,18 +562,18 @@ export const IncidentDetailPage: React.FC = () => {
               {approvals.map((app) => (
                 <div
                   key={app.id}
-                  className="p-4 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between text-xs"
+                  className="p-4 rounded-lg bg-obsidian-800 border border-obsidian-700 flex items-center justify-between text-xs"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <strong className="text-slate-200">Approval Version {app.version}</strong>
+                      <strong className="text-obsidian-text">Approval Version {app.version}</strong>
                       <Badge variant={app.status === "approved" ? "success" : "high"}>
                         {app.status.toUpperCase()}
                       </Badge>
                     </div>
-                    <p className="text-slate-400 font-mono text-[11px]">ID: {app.id}</p>
-                    <p className="text-slate-500 text-[11px]">
-                      Requested by {app.requested_by} at {new Date(app.requested_at).toLocaleString()}
+                    <p className="text-obsidian-muted font-mono text-[11px]">ID: {app.id}</p>
+                    <p className="text-obsidian-muted text-[11px]">
+                      Requested by <span className="text-copper-300 font-mono">{app.requested_by}</span> at {new Date(app.requested_at).toLocaleString()}
                     </p>
                   </div>
                   <Link to="/approvals">
@@ -535,18 +610,18 @@ export const IncidentDetailPage: React.FC = () => {
               {executions.map((ex) => (
                 <div
                   key={ex.id}
-                  className="p-4 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between text-xs"
+                  className="p-4 rounded-lg bg-obsidian-800 border border-obsidian-700 flex items-center justify-between text-xs"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <Badge variant={ex.mode === "live_diagnostic" ? "warning" : "info"}>
+                      <Badge variant={ex.mode === "live_diagnostic" ? "warning" : "default"}>
                         {ex.mode.toUpperCase()}
                       </Badge>
-                      <strong className="text-slate-200">{ex.operation_id}</strong>
+                      <strong className="text-obsidian-text font-mono">{ex.operation_id}</strong>
                       <Badge variant="outline">{ex.status.toUpperCase()}</Badge>
                     </div>
-                    <p className="text-slate-400 font-mono text-[11px]">Execution UUID: {ex.id}</p>
-                    <p className="text-slate-500 text-[11px]">
+                    <p className="text-obsidian-muted font-mono text-[11px]">Execution UUID: {ex.id}</p>
+                    <p className="text-obsidian-muted text-[11px]">
                       Duration: {ex.duration_ms} ms | Started: {new Date(ex.started_at).toLocaleString()}
                     </p>
                   </div>
@@ -580,14 +655,14 @@ export const IncidentDetailPage: React.FC = () => {
               {verifications.map((v) => (
                 <div
                   key={v.id}
-                  className="p-4 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between text-xs"
+                  className="p-4 rounded-lg bg-obsidian-800 border border-obsidian-700 flex items-center justify-between text-xs"
                 >
                   <div>
                     <div className="flex items-center gap-2">
                       <Badge variant="info">{v.outcome.toUpperCase()}</Badge>
-                      <strong className="text-slate-200">Operation: {v.operation_id}</strong>
+                      <strong className="text-obsidian-text font-mono">Operation: {v.operation_id}</strong>
                     </div>
-                    <p className="text-slate-400 font-mono text-[11px] mt-1">Verification ID: {v.id}</p>
+                    <p className="text-obsidian-muted font-mono text-[11px] mt-1">Verification ID: {v.id}</p>
                   </div>
                   <Link to="/verifications">
                     <Button variant="secondary" size="sm">
@@ -614,15 +689,15 @@ export const IncidentDetailPage: React.FC = () => {
               {rollbackAssessments.map((rb) => (
                 <div
                   key={rb.id}
-                  className="p-4 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between text-xs"
+                  className="p-4 rounded-lg bg-obsidian-800 border border-obsidian-700 flex items-center justify-between text-xs"
                 >
                   <div>
                     <div className="flex items-center gap-2">
                       <Badge variant="default">{rb.readiness_status.toUpperCase()}</Badge>
-                      <strong className="text-slate-200">Applicability: {rb.applicability}</strong>
-                      <span className="text-slate-500 font-mono">Risk: {rb.risk_level.toUpperCase()}</span>
+                      <strong className="text-obsidian-text">Applicability: {rb.applicability}</strong>
+                      <span className="text-obsidian-muted font-mono">Risk: {rb.risk_level.toUpperCase()}</span>
                     </div>
-                    <p className="text-slate-400 font-mono text-[11px] mt-1">Assessment ID: {rb.id}</p>
+                    <p className="text-obsidian-muted font-mono text-[11px] mt-1">Assessment ID: {rb.id}</p>
                   </div>
                   <Link to="/rollbacks">
                     <Button variant="secondary" size="sm">

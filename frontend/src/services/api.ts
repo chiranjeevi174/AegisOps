@@ -23,6 +23,7 @@ import type {
   ExecutionEvent,
   SimulateExecutionInput,
   DiagnoseExecutionInput,
+  ExecuteDemoInput,
 } from "@/types/execution";
 import type {
   VerificationSummary,
@@ -35,6 +36,8 @@ import type {
   RollbackAssessmentDetail,
   RollbackEvent,
   CreateRollbackAssessmentInput,
+  RollbackExecutionDetail,
+  ExecuteRollbackInput,
 } from "@/types/rollback";
 import type { UnifiedAuditEvent } from "@/types/audit";
 import type {
@@ -161,10 +164,10 @@ export const incidentsApi = {
     );
     return data;
   },
-  createApproval: async (id: string): Promise<Approval> => {
+  createApproval: async (id: string, payload?: { plan?: any; rca?: any }): Promise<Approval> => {
     const { data } = await apiClient.post<Approval>(
       `/incidents/${id}/approvals`,
-      {},
+      payload || {},
       { timeout: 120000 }
     );
     return data;
@@ -205,6 +208,10 @@ export const executionsApi = {
     const { data } = await apiClient.get<AllowlistedOperation[]>("/execution-operations");
     return data;
   },
+  getDemoOperations: async (): Promise<AllowlistedOperation[]> => {
+    const { data } = await apiClient.get<AllowlistedOperation[]>("/execution-operations/demo");
+    return data;
+  },
   list: async (params?: { incident_id?: string; approval_id?: string; status?: string; limit?: number; offset?: number }): Promise<Execution[]> => {
     const { data } = await apiClient.get<Execution[]>("/executions", { params });
     return data;
@@ -228,6 +235,14 @@ export const executionsApi = {
   diagnose: async (payload: DiagnoseExecutionInput): Promise<ExecutionDetail> => {
     const { data } = await apiClient.post<ExecutionDetail>(
       "/executions/diagnose",
+      payload,
+      { timeout: 60000 }
+    );
+    return data;
+  },
+  executeDemo: async (payload: ExecuteDemoInput): Promise<ExecutionDetail> => {
+    const { data } = await apiClient.post<ExecutionDetail>(
+      "/executions/execute-demo",
       payload,
       { timeout: 60000 }
     );
@@ -271,6 +286,18 @@ export const rollbacksApi = {
   },
   create: async (executionId: string, payload: CreateRollbackAssessmentInput): Promise<RollbackAssessmentDetail> => {
     const { data } = await apiClient.post<RollbackAssessmentDetail>(`/executions/${executionId}/rollback-assessments`, payload);
+    return data;
+  },
+  executeRollback: async (payload: ExecuteRollbackInput): Promise<RollbackExecutionDetail> => {
+    const { data } = await apiClient.post<RollbackExecutionDetail>("/demo-rollbacks/execute", payload);
+    return data;
+  },
+  listExecutions: async (params?: { execution_id?: string; limit?: number; offset?: number }): Promise<RollbackExecutionDetail[]> => {
+    const { data } = await apiClient.get<RollbackExecutionDetail[]>("/rollback-executions", { params });
+    return data;
+  },
+  getExecution: async (id: string): Promise<RollbackExecutionDetail> => {
+    const { data } = await apiClient.get<RollbackExecutionDetail>(`/rollback-executions/${id}`);
     return data;
   },
 };

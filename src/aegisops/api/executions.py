@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from aegisops.api.execution_schemas import (
     AllowlistedOperationResponse,
     DiagnoseExecutionRequest,
+    ExecuteDemoRequest,
     ExecutionDetailResponse,
     ExecutionEventResponse,
     ExecutionResponse,
@@ -23,6 +24,7 @@ from aegisops.db.session import get_db
 from aegisops.domain.execution import ExecutionMode, ExecutionStatus
 from aegisops.execution.registry import (
     ALLOWLISTED_OPERATIONS,
+    DEMO_REMEDIATION_OPERATIONS,
     OperationNotAllowedError,
 )
 from aegisops.observability.metrics import EXECUTION_REQUESTS
@@ -65,6 +67,32 @@ async def list_execution_operations(
             parameters_schema=op.parameters_schema.model_json_schema(),
         )
         for op in ALLOWLISTED_OPERATIONS.values()
+    ]
+
+
+@router.get(
+    "/execution-operations/demo",
+    response_model=list[AllowlistedOperationResponse],
+)
+async def list_demo_execution_operations(
+    actor: Annotated[AuthenticatedActor, Depends(get_current_actor)],
+):
+    """Returns the allowlisted operations for demo remediation execution (development only)."""
+    return [
+        AllowlistedOperationResponse(
+            id=op.id,
+            name=op.name,
+            description=op.description,
+            risk_level=op.risk_level,
+            required_permission=op.required_permission,
+            max_simulated_duration_ms=op.max_simulated_duration_ms,
+            real_execution_supported=True,
+            live_diagnostic_supported=op.live_diagnostic_supported,
+            supported_modes=sorted(op.supported_modes),
+            is_read_only=op.is_read_only,
+            parameters_schema=op.parameters_schema.model_json_schema(),
+        )
+        for op in DEMO_REMEDIATION_OPERATIONS.values()
     ]
 
 
@@ -242,6 +270,93 @@ async def diagnose_remediation_execution(
         )
 
 
+@router.post(
+    "/executions/execute-demo",
+    response_model=ExecutionDetailResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(rate_limit_executions)],
+)
+async def execute_demo_remediation(
+    payload: ExecuteDemoRequest,
+    response: Response,
+    actor: Annotated[AuthenticatedActor, Depends(get_executor_actor)],
+    db: DbSession,
+):
+    """Executes live remediation against the isolated demo telemetry simulator bound to an approved plan."""
+    try:
+        record, is_replay = await executions.execute_demo_remediation(
+            session=db,
+            approval_id=payload.approval_id,
+            incident_id=payload.incident_id,
+            operation_id=payload.operation_id,
+            recommendation_index=payload.recommendation_index,
+            parameters=payload.parameters,
+            idempotency_key=payload.idempotency_key,
+            requested_by=actor.identity,
+        )
+
+        EXECUTION_REQUESTS.labels(
+            mode="demo_execution",
+            operation=payload.operation_id,
+            status="succeeded",
+        ).inc()
+
+        if is_replay:
+            response.status_code = status.HTTP_200_OK
+
+        return ExecutionDetailResponse(
+            id=record.id,
+            incident_id=record.incident_id,
+            approval_id=record.approval_id,
+            approved_plan_hash=record.approved_plan_hash,
+            approved_plan_version=record.approved_plan_version,
+            selected_recommendation_index=record.selected_recommendation_index,
+            selected_recommendation_title=record.selected_recommendation_title,
+            operation_id=record.operation_id,
+            parameters=record.parameters,
+            requested_by=record.requested_by,
+            mode=ExecutionMode(record.mode),
+            status=ExecutionStatus(record.status),
+            idempotency_key=record.idempotency_key,
+            requested_at=record.requested_at,
+            started_at=record.started_at,
+            completed_at=record.completed_at,
+            duration_ms=record.duration_ms,
+            is_replay=is_replay,
+            actual_infrastructure_access=True,
+            system_changes_performed=True,
+            simulation_result=None,
+            diagnostic_result=None,
+            execution_result=record.execution_result,
+        )
+    except (
+        ApprovalEligibilityError,
+        ConcurrencyConflictError,
+        ExecutionExpiredError,
+        IdempotencyConflictError,
+        PlanIntegrityError,
+    ) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        )
+    except LiveDiagnosticsDisabledError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        )
+    except (
+        OperationNotAllowedError,
+        ScopeValidationError,
+        ValidationError,
+        ValueError,
+    ) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        )
+
+
 @router.get(
     "/executions",
     response_model=list[ExecutionResponse],
@@ -284,9 +399,13 @@ async def list_executions(
             duration_ms=r.duration_ms,
             is_replay=False,
             actual_infrastructure_access=(
-                r.mode == ExecutionMode.LIVE_DIAGNOSTIC.value
+                r.mode
+                in (
+                    ExecutionMode.LIVE_DIAGNOSTIC.value,
+                    ExecutionMode.DEMO_EXECUTION.value,
+                )
             ),
-            system_changes_performed=False,
+            system_changes_performed=(r.mode == ExecutionMode.DEMO_EXECUTION.value),
         )
         for r in records
     ]
@@ -327,11 +446,13 @@ async def get_execution(
         duration_ms=record.duration_ms,
         is_replay=False,
         actual_infrastructure_access=(
-            record.mode == ExecutionMode.LIVE_DIAGNOSTIC.value
+            record.mode
+            in (ExecutionMode.LIVE_DIAGNOSTIC.value, ExecutionMode.DEMO_EXECUTION.value)
         ),
-        system_changes_performed=False,
+        system_changes_performed=(record.mode == ExecutionMode.DEMO_EXECUTION.value),
         simulation_result=record.simulation_result,
         diagnostic_result=record.diagnostic_result,
+        execution_result=record.execution_result,
     )
 
 

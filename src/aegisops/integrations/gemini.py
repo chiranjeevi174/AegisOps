@@ -46,7 +46,7 @@ def generate_investigation(prompt: str) -> InvestigationResult:
                 contents=prompt,
                 config={
                     "temperature": 0.1,
-                    "max_output_tokens": 1500,
+                    "max_output_tokens": 2500,
                     "response_mime_type": "application/json",
                     "response_schema": InvestigationResult,
                 },
@@ -67,7 +67,7 @@ def generate_investigation(prompt: str) -> InvestigationResult:
         raise
     except Exception as exc:
         GEMINI_REQUESTS.labels(stage="investigation", status="failed").inc()
-        raise GeminiError("Gemini investigation failed") from exc
+        raise GeminiError(f"Gemini investigation failed: {exc}") from exc
 
 
 def generate_rca(prompt: str) -> RootCauseAnalysis:
@@ -110,7 +110,7 @@ def generate_rca(prompt: str) -> RootCauseAnalysis:
         raise
     except Exception as exc:
         GEMINI_REQUESTS.labels(stage="rca", status="failed").inc()
-        raise GeminiError("Gemini RCA generation failed") from exc
+        raise GeminiError(f"Gemini RCA generation failed: {exc}") from exc
 
 
 def generate_remediation_plan(prompt: str) -> RemediationPlan:
@@ -158,4 +158,4 @@ def generate_remediation_plan(prompt: str) -> RemediationPlan:
         raise
     except Exception as exc:
         GEMINI_REQUESTS.labels(stage="remediation_planning", status="failed").inc()
-        raise GeminiError("Gemini remediation planning failed") from exc
+        raise GeminiError(f"Gemini remediation planning failed: {exc}") from exc

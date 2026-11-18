@@ -50,6 +50,8 @@ services:
     command: ["python", "scripts/run_migrations.py"]
     networks:
       - aegisops-prod-net
+    healthcheck:
+      disable: true
     deploy:
       resources:
         limits:

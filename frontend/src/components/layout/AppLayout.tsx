@@ -41,7 +41,7 @@ export const AppLayout: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
+    <div className="flex h-screen bg-obsidian-950 text-obsidian-text overflow-hidden font-sans selection:bg-copper-400 selection:text-obsidian-950">
       <Sidebar
         actor={actor}
         onOpenPersonaModal={() => setIsPersonaModalOpen(true)}
@@ -55,6 +55,7 @@ export const AppLayout: React.FC = () => {
           monitoringAvailable={overview?.monitoring_available}
           onRefresh={handleRefresh}
           isRefreshing={isRefetching}
+          onOpenPersonaModal={() => setIsPersonaModalOpen(true)}
         />
 
         <main className="flex-1 overflow-y-auto p-6 space-y-6">

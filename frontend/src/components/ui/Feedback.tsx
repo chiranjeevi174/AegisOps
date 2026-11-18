@@ -9,16 +9,18 @@ export interface EmptyStateProps {
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
-  icon = <FolderOpen className="w-10 h-10 text-slate-500" />,
+  icon = <FolderOpen className="w-10 h-10 text-obsidian-muted" />,
   title,
   description,
   action,
 }) => (
-  <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-900/40 border border-slate-800/80 rounded-xl my-4">
-    <div className="p-3 bg-slate-800/60 rounded-full mb-3">{icon}</div>
-    <h3 className="text-sm font-semibold text-slate-200">{title}</h3>
+  <div className="flex flex-col items-center justify-center p-8 text-center bg-obsidian-800/50 border border-obsidian-700/80 rounded-xl my-4 text-obsidian-text">
+    <div className="p-3 bg-obsidian-750/70 border border-obsidian-700 rounded-full mb-3 text-copper-400">
+      {icon}
+    </div>
+    <h3 className="text-sm font-semibold text-obsidian-text">{title}</h3>
     {description && (
-      <p className="text-xs text-slate-400 max-w-sm mt-1">{description}</p>
+      <p className="text-xs text-obsidian-secondary max-w-sm mt-1">{description}</p>
     )}
     {action && <div className="mt-4">{action}</div>}
   </div>
@@ -29,7 +31,7 @@ export const Skeleton: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   ...props
 }) => (
   <div
-    className={`animate-pulse bg-slate-800/70 rounded ${className}`}
+    className={`animate-pulse bg-obsidian-750/70 border border-obsidian-700/40 rounded ${className}`}
     {...props}
   />
 );
@@ -48,10 +50,10 @@ export const AlertMessage: React.FC<AlertMessageProps> = ({
   className = "",
 }) => {
   const typeStyles = {
-    info: "bg-blue-950/50 border-blue-800/60 text-blue-200",
-    success: "bg-emerald-950/50 border-emerald-800/60 text-emerald-200",
-    warning: "bg-amber-950/50 border-amber-800/60 text-amber-200",
-    error: "bg-rose-950/50 border-rose-800/60 text-rose-200",
+    info: "bg-ai-violet/10 border-ai-violet/30 text-ai-violet",
+    success: "bg-status-healthy/10 border-status-healthy/30 text-status-healthy",
+    warning: "bg-amber-400/10 border-status-warning/30 text-status-warning",
+    error: "bg-rose-500/10 border-status-critical/30 text-status-critical",
   };
 
   return (
@@ -60,7 +62,7 @@ export const AlertMessage: React.FC<AlertMessageProps> = ({
       role="alert"
     >
       {title && <h5 className="font-semibold mb-1 text-sm">{title}</h5>}
-      <div>{children}</div>
+      <div className="text-obsidian-secondary">{children}</div>
     </div>
   );
 };

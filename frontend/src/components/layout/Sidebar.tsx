@@ -56,27 +56,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-screen shrink-0 select-none">
+    <aside className="w-64 bg-obsidian-850 border-r border-obsidian-700 flex flex-col h-screen shrink-0 select-none">
       {/* Brand Header */}
-      <div className="p-5 border-b border-slate-800/80 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-indigo-600 to-indigo-400 flex items-center justify-center text-white shadow-md shadow-indigo-950/60 ring-1 ring-indigo-400/40">
-          <ShieldCheck className="w-5 h-5" />
+      <div className="p-4 border-b border-obsidian-700 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-copper-500 to-amber-500 flex items-center justify-center text-obsidian-950 font-bold shadow-copper-sm ring-1 ring-copper-400/40 shrink-0">
+          <ShieldCheck className="w-5 h-5 text-obsidian-950 stroke-[2.5]" />
         </div>
-        <div>
+        <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-base tracking-tight text-white">AegisOps</span>
-            <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 bg-indigo-950 text-indigo-300 border border-indigo-800 rounded font-semibold">
+            <span className="font-bold text-base tracking-tight text-obsidian-text">AegisOps</span>
+            <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 bg-copper-400/10 text-copper-400 border border-copper-400/30 rounded font-semibold">
               v0.1
             </span>
           </div>
-          <p className="text-[11px] text-slate-400 font-medium truncate max-w-[150px]">
+          <p className="text-[11px] text-obsidian-muted font-medium truncate">
             Agentic SRE Platform
           </p>
         </div>
       </div>
 
       {/* Nav List */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-3.5 space-y-1 overflow-y-auto">
+        <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-obsidian-muted font-mono">
+          Command Center
+        </div>
         {navItems.map((item) => (
           <NavLink
             key={item.path}
@@ -85,21 +88,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className={({ isActive }) =>
               `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                 isActive
-                  ? "bg-indigo-600/15 text-indigo-300 border border-indigo-600/30"
-                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/60"
+                  ? "bg-copper-400/15 text-copper-400 border border-copper-400/30 font-semibold shadow-obsidian-sm"
+                  : "text-obsidian-secondary hover:text-obsidian-text hover:bg-obsidian-750"
               }`
             }
           >
             <div className="flex items-center gap-2.5">
-              <item.icon className="w-4 h-4 text-current" />
+              <item.icon className="w-4 h-4 text-current shrink-0" />
               <span>{item.name}</span>
             </div>
             {item.badge !== undefined && (
               <span
-                className={`px-1.5 py-0.2 text-[10px] font-bold rounded-full ${
+                className={`px-1.5 py-0.2 text-[10px] font-bold font-mono rounded-full ${
                   item.badgeVariant === "critical"
-                    ? "bg-rose-900 text-rose-200"
-                    : "bg-amber-900 text-amber-200"
+                    ? "bg-rose-500/20 text-status-critical border border-status-critical/30"
+                    : "bg-amber-400/20 text-status-warning border border-status-warning/30"
                 }`}
               >
                 {item.badge}
@@ -110,42 +113,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* Observability Tools Integration Links */}
-      <div className="px-3 py-2 border-t border-slate-800/80">
+      <div className="px-3 py-2 border-t border-obsidian-700/80">
         <a
           href="http://localhost:3000"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors"
+          className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-obsidian-muted hover:text-obsidian-text hover:bg-obsidian-750 transition-colors"
         >
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-status-healthy animate-pulse" />
             <span>Grafana Dashboard</span>
           </div>
-          <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+          <ExternalLink className="w-3.5 h-3.5 text-obsidian-muted" />
         </a>
       </div>
 
       {/* Persona & Identity Footer */}
-      <div className="p-3 border-t border-slate-800 bg-slate-950/60">
+      <div className="p-3 border-t border-obsidian-700 bg-obsidian-900/60">
         <button
           onClick={onOpenPersonaModal}
           title="Switch Persona"
-          className="w-full flex items-center justify-between p-2 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-900/60 transition-all text-left group"
+          className="w-full flex items-center justify-between p-2 rounded-lg border border-obsidian-700 hover:border-copper-400/50 bg-obsidian-800 transition-all text-left group"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-full bg-indigo-950 border border-indigo-800 flex items-center justify-center text-indigo-300 shrink-0">
+            <div className="w-7 h-7 rounded-full bg-copper-400/10 border border-copper-400/30 flex items-center justify-center text-copper-400 shrink-0">
               <User className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-medium text-slate-200 truncate group-hover:text-white">
+              <p className="text-xs font-medium text-obsidian-text truncate group-hover:text-copper-300">
                 {actor?.identity || "sre-operator-dan"}
               </p>
-              <p className="text-[10px] text-slate-400 truncate">
+              <p className="text-[10px] text-obsidian-muted truncate font-mono">
                 {actor?.roles?.join(", ") || "operator"}
               </p>
             </div>
           </div>
-          <span className="text-[10px] text-indigo-400 font-semibold px-1.5 py-0.5 rounded bg-indigo-950 border border-indigo-900 shrink-0">
+          <span className="text-[10px] text-copper-400 font-semibold px-1.5 py-0.5 rounded bg-copper-400/10 border border-copper-400/30 shrink-0 font-mono">
             Switch
           </span>
         </button>

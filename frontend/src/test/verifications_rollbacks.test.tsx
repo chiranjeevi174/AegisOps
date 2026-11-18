@@ -18,6 +18,9 @@ vi.mock("@/services/api", () => ({
     get: vi.fn(),
     getEvents: vi.fn(),
     create: vi.fn(),
+    listExecutions: vi.fn(),
+    getExecution: vi.fn(),
+    executeRollback: vi.fn(),
   },
   executionsApi: {
     list: vi.fn(),
@@ -173,6 +176,7 @@ describe("RollbacksPage & Simulation Guardrails", () => {
     vi.clearAllMocks();
     (authApi.getMe as any).mockResolvedValue(mockActor);
     (rollbacksApi.list as any).mockResolvedValue(mockAssessments);
+    (rollbacksApi.listExecutions as any).mockResolvedValue([]);
     (rollbacksApi.get as any).mockResolvedValue(mockAssessmentDetail);
     (rollbacksApi.getEvents as any).mockResolvedValue([]);
     (executionsApi.list as any).mockResolvedValue([]);

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 from aegisops.integrations.prometheus import PrometheusError
 from aegisops.services.historical_evidence import collect_historical_metric_window
@@ -34,6 +34,21 @@ def collect_historical_evidence_node(state: IncidentState) -> dict:
         }
 
         if not has_any_samples:
+            now = datetime.now(UTC)
+            if (now - started_at) > timedelta(minutes=15):
+                active_data = collect_historical_metric_window(alert_started_at=now)
+                if any(summary.count > 0 for summary in active_data.metrics.values()):
+                    active_window = {
+                        "start": active_data.window_start.isoformat(),
+                        "end": active_data.window_end.isoformat(),
+                        "step": active_data.step,
+                    }
+                    return {
+                        "historical_evidence": active_data.model_dump(mode="json"),
+                        "historical_evidence_error": None,
+                        "historical_window": active_window,
+                    }
+
             return {
                 "historical_evidence": None,
                 "historical_evidence_error": "No historical metrics available in the requested window",

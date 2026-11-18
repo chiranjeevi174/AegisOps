@@ -60,6 +60,21 @@ DIAGNOSTIC_METRICS: dict[str, dict[str, str]] = {
         "unit": "ratio",
         "label": "HTTP Error Rate",
     },
+    "remediate_service_degradation": {
+        "expression": "aegisops_sim_cpu_usage_percent",
+        "unit": "%",
+        "label": "CPU Utilization",
+    },
+    "restart_demo_service": {
+        "expression": "aegisops_sim_service_up",
+        "unit": "binary",
+        "label": "Service Availability",
+    },
+    "scale_demo_workload": {
+        "expression": "aegisops_sim_cpu_usage_percent",
+        "unit": "%",
+        "label": "CPU Utilization",
+    },
 }
 
 

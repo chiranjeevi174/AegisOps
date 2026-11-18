@@ -31,6 +31,18 @@ class DiagnoseExecutionRequest(BaseModel):
     idempotency_key: str = Field(min_length=1, max_length=128)
 
 
+class ExecuteDemoRequest(BaseModel):
+    approval_id: UUID
+    incident_id: UUID
+    operation_id: str = Field(min_length=1, max_length=100)
+    recommendation_index: int = Field(
+        ge=1,
+        description="1-based index of the approved recommendation this operation supports",
+    )
+    parameters: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str = Field(min_length=1, max_length=128)
+
+
 class ExecutionResponse(BaseModel):
     id: UUID
     incident_id: UUID
@@ -59,6 +71,7 @@ class ExecutionResponse(BaseModel):
 class ExecutionDetailResponse(ExecutionResponse):
     simulation_result: dict[str, Any] | None = None
     diagnostic_result: dict[str, Any] | None = None
+    execution_result: dict[str, Any] | None = None
 
 
 class ExecutionEventResponse(BaseModel):

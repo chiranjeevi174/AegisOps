@@ -40,9 +40,9 @@ const SettingsPage = React.lazy(() =>
 
 const RouteLoadingFallback: React.FC = () => (
   <div className="p-6 space-y-4 max-w-7xl mx-auto" role="status" aria-label="Loading page">
-    <Skeleton className="h-8 w-64 bg-slate-800/80" />
-    <Skeleton className="h-32 w-full bg-slate-850/80" />
-    <Skeleton className="h-72 w-full bg-slate-850/80" />
+    <Skeleton className="h-8 w-64 bg-obsidian-750" />
+    <Skeleton className="h-32 w-full bg-obsidian-800" />
+    <Skeleton className="h-72 w-full bg-obsidian-800" />
   </div>
 );
 

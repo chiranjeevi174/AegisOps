@@ -81,16 +81,16 @@ export const IncidentsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-obsidian-text">
       {/* Header and Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-100 tracking-tight flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-indigo-400" />
+          <h1 className="text-xl font-bold text-obsidian-text tracking-tight flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-copper-400" />
             Incident Management
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Monitor, investigate, and triage production alert streams and incidents.
+          <p className="text-xs text-obsidian-muted mt-1">
+            Monitor, investigate, and triage production alert streams and incidents with immutable audit tracking.
           </p>
         </div>
         <Button onClick={() => setIsCreateModalOpen(true)}>
@@ -100,34 +100,34 @@ export const IncidentsPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <Card>
-        <CardContent className="p-4">
+      <Card className="bg-obsidian-800 border-obsidian-700">
+        <CardContent className="p-3.5">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="relative">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+              <Search className="w-4 h-4 text-obsidian-muted absolute left-3 top-2.5" />
               <input
                 type="text"
                 placeholder="Search title, description, or UUID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-9 pr-3 py-2 bg-obsidian-900 border border-obsidian-700 rounded-lg text-xs text-obsidian-text placeholder-obsidian-muted focus:outline-none focus:ring-1 focus:ring-copper-400 focus:border-copper-400 transition-colors"
               />
             </div>
             <select
               value={severityFilter}
               onChange={(e) => setSeverityFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-3 py-2 bg-obsidian-900 border border-obsidian-700 rounded-lg text-xs text-obsidian-text focus:outline-none focus:ring-1 focus:ring-copper-400 focus:border-copper-400 transition-colors"
             >
               <option value="all">All Severities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
+              <option value="critical">Critical (P1)</option>
+              <option value="high">High (P2)</option>
+              <option value="medium">Medium (P3)</option>
+              <option value="low">Low (P4)</option>
             </select>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-3 py-2 bg-obsidian-900 border border-obsidian-700 rounded-lg text-xs text-obsidian-text focus:outline-none focus:ring-1 focus:ring-copper-400 focus:border-copper-400 transition-colors"
             >
               <option value="all">All Statuses</option>
               <option value="open">Open</option>
@@ -139,11 +139,11 @@ export const IncidentsPage: React.FC = () => {
       </Card>
 
       {/* Incidents Table */}
-      <Card>
-        <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
+      <Card className="bg-obsidian-800 border-obsidian-700">
+        <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b border-obsidian-700">
           <div className="flex items-center gap-2">
             <CardTitle>Recorded Incidents</CardTitle>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-obsidian-900 border border-obsidian-700 text-copper-300 font-mono font-semibold">
               {filteredIncidents.length}
             </span>
           </div>
@@ -151,12 +151,12 @@ export const IncidentsPage: React.FC = () => {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full bg-obsidian-750" />
+              <Skeleton className="h-10 w-full bg-obsidian-750" />
+              <Skeleton className="h-10 w-full bg-obsidian-750" />
             </div>
           ) : isError ? (
-            <div className="p-6 text-center text-rose-400 text-xs">
+            <div className="p-6 text-center text-status-critical text-xs">
               Failed to load incidents: {(error as any)?.message}
             </div>
           ) : filteredIncidents.length === 0 ? (
@@ -167,7 +167,7 @@ export const IncidentsPage: React.FC = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/70 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                <thead className="bg-obsidian-900 border-b border-obsidian-700 text-obsidian-muted font-semibold uppercase tracking-wider font-mono text-[11px]">
                   <tr>
                     <th className="py-3 px-4">Severity</th>
                     <th className="py-3 px-4">Title & Context</th>
@@ -178,11 +178,11 @@ export const IncidentsPage: React.FC = () => {
                     <th className="py-3 px-4 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-obsidian-700/60 font-sans">
                   {filteredIncidents.map((incident) => (
                     <tr
                       key={incident.id}
-                      className="hover:bg-slate-800/40 transition-colors group"
+                      className="hover:bg-obsidian-750/50 transition-colors group"
                     >
                       <td className="py-3 px-4 whitespace-nowrap">
                         <Badge variant={incident.severity}>
@@ -192,11 +192,11 @@ export const IncidentsPage: React.FC = () => {
                       <td className="py-3 px-4">
                         <Link
                           to={`/incidents/${incident.id}`}
-                          className="font-medium text-slate-200 group-hover:text-indigo-400 transition-colors block"
+                          className="font-medium text-obsidian-text group-hover:text-copper-400 transition-colors block"
                         >
                           {incident.title}
                         </Link>
-                        <span className="text-[11px] font-mono text-slate-500 truncate block max-w-xs mt-0.5">
+                        <span className="text-[11px] font-mono text-obsidian-muted truncate block max-w-xs mt-0.5">
                           {incident.id}
                         </span>
                       </td>
@@ -206,29 +206,29 @@ export const IncidentsPage: React.FC = () => {
                             incident.status === "open"
                               ? "high"
                               : incident.status === "investigating"
-                              ? "medium"
+                              ? "info"
                               : "low"
                           }
                         >
                           {incident.status.toUpperCase()}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4 whitespace-nowrap text-slate-400">
+                      <td className="py-3 px-4 whitespace-nowrap text-obsidian-secondary font-mono text-[11px]">
                         {incident.source}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
                         {incident.alert_state ? (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] text-amber-300">
-                            <Radio className="w-3 h-3 text-amber-400" />
+                          <span className="inline-flex items-center gap-1.5 text-[11px] text-status-warning font-mono">
+                            <Radio className="w-3 h-3 text-status-warning" />
                             {incident.alert_state}
                           </span>
                         ) : (
-                          <span className="text-slate-500">—</span>
+                          <span className="text-obsidian-muted">—</span>
                         )}
                       </td>
-                      <td className="py-3 px-4 whitespace-nowrap text-slate-400">
+                      <td className="py-3 px-4 whitespace-nowrap text-obsidian-muted font-mono text-[11px]">
                         <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-slate-500" />
+                          <Clock className="w-3.5 h-3.5 text-obsidian-muted" />
                           <span>{new Date(incident.created_at).toLocaleString()}</span>
                         </div>
                       </td>
@@ -263,19 +263,19 @@ export const IncidentsPage: React.FC = () => {
             error={errors.title?.message}
           />
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-obsidian-secondary mb-1">
               Description
             </label>
             <textarea
               rows={3}
               placeholder="Detailed description of symptoms, error logs, or user impact..."
               {...register("description")}
-              className={`w-full px-3.5 py-2 bg-slate-950 border rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                errors.description ? "border-rose-500" : "border-slate-800"
+              className={`w-full px-3.5 py-2 bg-obsidian-900 border rounded-lg text-xs text-obsidian-text placeholder-obsidian-muted focus:outline-none focus:ring-1 focus:ring-copper-400 focus:border-copper-400 ${
+                errors.description ? "border-status-critical" : "border-obsidian-700"
               }`}
             />
             {errors.description && (
-              <p className="text-xs text-rose-400 mt-1">{errors.description.message}</p>
+              <p className="text-xs text-status-critical mt-1">{errors.description.message}</p>
             )}
           </div>
           <Select
@@ -289,7 +289,7 @@ export const IncidentsPage: React.FC = () => {
               { value: "low", label: "Low (P4 — Advisory / Cosmetic)" },
             ]}
           />
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+          <div className="flex justify-end gap-2 pt-3 border-t border-obsidian-700">
             <Button
               type="button"
               variant="ghost"

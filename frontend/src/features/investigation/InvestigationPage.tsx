@@ -4,6 +4,7 @@ import {
   SearchCode,
   Sparkles,
   Eye,
+  CheckCircle2,
 } from "lucide-react";
 import { incidentsApi } from "@/services/api";
 import type { IncidentAnalysisResult } from "@/types/incident";
@@ -34,7 +35,7 @@ export const InvestigationPage: React.FC = () => {
   // Read analysis from query cache
   const { data: analysis } = useQuery<IncidentAnalysisResult | null>({
     queryKey: ["incidents", selectedIncidentId, "analysis"],
-    queryFn: () => null, // populated by analyze mutation or cache
+    queryFn: () => null,
     enabled: !!selectedIncidentId,
   });
 
@@ -55,28 +56,28 @@ export const InvestigationPage: React.FC = () => {
   const selectedIncident = incidents?.find((i) => i.id === selectedIncidentId);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-obsidian-text select-none font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-100 tracking-tight flex items-center gap-2">
-            <SearchCode className="w-5 h-5 text-indigo-400" />
+          <h1 className="text-xl font-bold text-obsidian-text tracking-tight flex items-center gap-2">
+            <SearchCode className="w-5 h-5 text-ai-violet" />
             Investigations & Root Cause Analysis
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-obsidian-muted mt-1">
             Gemini-powered telemetry investigation, evidence verification, and multi-hypothesis root cause deduction.
           </p>
         </div>
 
         {/* Incident Selector */}
-        <div className="w-full sm:w-72">
+        <div className="w-full sm:w-80">
           <Select
             value={selectedIncidentId}
             onChange={(e) => setSelectedIncidentId(e.target.value)}
             disabled={isLoadingIncidents || analyzeMutation.isPending}
             options={incidents?.map((inc) => ({
               value: inc.id,
-              label: `[${inc.severity.toUpperCase()}] ${inc.title.slice(0, 30)}...`,
+              label: `[${inc.severity.toUpperCase()}] ${inc.title.slice(0, 32)}...`,
             }))}
           />
         </div>
@@ -89,23 +90,23 @@ export const InvestigationPage: React.FC = () => {
       )}
 
       {selectedIncident && (
-        <Card className="bg-slate-900/60 border-slate-800 p-4">
+        <Card className="bg-obsidian-800 border-obsidian-700 p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
                 <Badge variant={selectedIncident.severity}>
                   {selectedIncident.severity.toUpperCase()}
                 </Badge>
-                <h3 className="text-sm font-semibold text-slate-200">
+                <h3 className="text-sm font-semibold text-obsidian-text">
                   {selectedIncident.title}
                 </h3>
               </div>
-              <p className="text-xs text-slate-400 mt-1 font-mono">
+              <p className="text-xs text-obsidian-muted mt-1 font-mono text-[11px]">
                 Incident ID: {selectedIncident.id}
               </p>
             </div>
             <Button
-              variant="primary"
+              variant="ai"
               size="sm"
               onClick={() => analyzeMutation.mutate()}
               isLoading={analyzeMutation.isPending}
@@ -126,53 +127,54 @@ export const InvestigationPage: React.FC = () => {
         <div className="space-y-6">
           {/* Section 1: Strictly Observed Evidence */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-200">
-              <Eye className="w-4 h-4 text-emerald-400" />
+            <div className="flex items-center gap-2 text-sm font-semibold text-obsidian-text">
+              <Eye className="w-4 h-4 text-status-healthy" />
               <span>Observed Platform Evidence (Deterministic Telemetry)</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="p-4 bg-slate-900/90 border-slate-800">
-                <span className="text-xs text-slate-400 block font-medium">Triage Priority</span>
-                <span className="text-lg font-bold text-indigo-300 font-mono mt-1 block">
+              <Card className="p-4 bg-obsidian-800 border-obsidian-700">
+                <span className="text-xs text-obsidian-muted block font-medium font-mono">Triage Priority</span>
+                <span className="text-lg font-bold text-copper-400 font-mono mt-1 block">
                   {analysis.priority || "P2"}
                 </span>
-                <span className="text-[11px] text-slate-500 block mt-1">
-                  Escalation Required: {analysis.requires_escalation ? "YES" : "NO"}
+                <span className="text-[11px] text-obsidian-muted block mt-1">
+                  Escalation Required: <strong className="text-obsidian-text">{analysis.requires_escalation ? "YES" : "NO"}</strong>
                 </span>
               </Card>
 
-              <Card className="p-4 bg-slate-900/90 border-slate-800">
-                <span className="text-xs text-slate-400 block font-medium">Telemetry Timestamp</span>
-                <span className="text-xs font-mono text-slate-200 mt-1 block truncate">
+              <Card className="p-4 bg-obsidian-800 border-obsidian-700">
+                <span className="text-xs text-obsidian-muted block font-medium font-mono">Telemetry Timestamp</span>
+                <span className="text-xs font-mono text-copper-300 mt-1 block truncate">
                   {analysis.evidence_collected_at || "Live snapshot"}
                 </span>
-                <span className="text-[11px] text-emerald-400 block mt-1">
+                <span className="text-[11px] text-status-healthy block mt-1 flex items-center gap-1 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                   Verified Prometheus metrics captured
                 </span>
               </Card>
 
-              <Card className="p-4 bg-slate-900/90 border-slate-800">
-                <span className="text-xs text-slate-400 block font-medium">Human Review Flag</span>
-                <span className="text-sm font-semibold text-amber-300 mt-1 block">
+              <Card className="p-4 bg-obsidian-800 border-obsidian-700">
+                <span className="text-xs text-obsidian-muted block font-medium font-mono">Human Review Flag</span>
+                <span className="text-sm font-semibold text-status-warning mt-1 block">
                   Mandatory Operator Sign-off
                 </span>
-                <span className="text-[11px] text-slate-500 block mt-1">
+                <span className="text-[11px] text-obsidian-muted block mt-1">
                   Autonomous mutations prohibited
                 </span>
               </Card>
             </div>
 
             {analysis.evidence && (
-              <Card>
-                <CardHeader className="py-2.5 px-4 bg-slate-950/40">
-                  <CardTitle className="text-xs">Raw Prometheus Metrics</CardTitle>
+              <Card className="bg-obsidian-800 border-obsidian-700">
+                <CardHeader className="py-2.5 px-4 bg-obsidian-900/60 border-b border-obsidian-700">
+                  <CardTitle className="text-xs font-mono text-obsidian-secondary uppercase tracking-wider">Raw Prometheus Metrics</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
                     {Object.entries(analysis.evidence).map(([key, val]) => (
-                      <div key={key} className="p-2.5 rounded bg-slate-950 border border-slate-800">
-                        <span className="text-slate-500 text-[11px] block truncate">{key}</span>
-                        <span className="text-slate-200 font-bold text-sm">{String(val ?? "null")}</span>
+                      <div key={key} className="p-2.5 rounded bg-obsidian-900 border border-obsidian-700">
+                        <span className="text-obsidian-muted text-[11px] block truncate">{key}</span>
+                        <span className="text-obsidian-text font-bold text-sm">{String(val ?? "null")}</span>
                       </div>
                     ))}
                   </div>
@@ -183,40 +185,40 @@ export const InvestigationPage: React.FC = () => {
 
           {/* Section 2: AI Investigation Summary */}
           {analysis.investigation && (
-            <Card>
-              <CardHeader className="py-3 px-4">
+            <Card className="bg-obsidian-800 border-obsidian-700">
+              <CardHeader className="py-3 px-4 border-b border-obsidian-700">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
-                    <SearchCode className="w-4 h-4 text-indigo-400" />
+                    <SearchCode className="w-4 h-4 text-ai-violet" />
                     Agentic Investigation Observations
                   </CardTitle>
-                  <Badge variant="info">
+                  <Badge variant="ai">
                     Confidence: {analysis.investigation.confidence || "MEDIUM"}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-4 space-y-4 text-xs">
-                <p className="text-slate-300 leading-relaxed bg-slate-950/60 p-3.5 rounded-lg border border-slate-800">
+                <p className="text-obsidian-secondary leading-relaxed bg-obsidian-900 p-3.5 rounded-lg border border-obsidian-700 font-mono">
                   {analysis.investigation.summary}
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-3 bg-slate-950/40 border border-slate-800 rounded-lg">
-                    <span className="font-semibold text-slate-300 block mb-2">
+                  <div className="p-3 bg-obsidian-900 border border-obsidian-700 rounded-lg">
+                    <span className="font-semibold text-obsidian-text block mb-2 font-mono text-[11px]">
                       Key Telemetry Observations
                     </span>
-                    <ul className="list-disc list-inside text-slate-400 space-y-1">
+                    <ul className="list-disc list-inside text-obsidian-secondary space-y-1 text-[11px]">
                       {analysis.investigation.observations?.map((obs: string, idx: number) => (
                         <li key={idx}>{obs}</li>
                       ))}
                     </ul>
                   </div>
 
-                  <div className="p-3 bg-slate-950/40 border border-slate-800 rounded-lg">
-                    <span className="font-semibold text-slate-300 block mb-2">
+                  <div className="p-3 bg-obsidian-900 border border-obsidian-700 rounded-lg">
+                    <span className="font-semibold text-copper-400 block mb-2 font-mono text-[11px]">
                       Recommended Diagnostic Checks
                     </span>
-                    <ul className="list-disc list-inside text-slate-400 space-y-1">
+                    <ul className="list-disc list-inside text-obsidian-secondary space-y-1 text-[11px] font-mono">
                       {analysis.investigation.recommended_checks?.map((chk: string, idx: number) => (
                         <li key={idx}>{chk}</li>
                       ))}
@@ -227,85 +229,85 @@ export const InvestigationPage: React.FC = () => {
             </Card>
           )}
 
-          {/* Section 3: Root Cause Hypotheses (Distinguishing Hypotheses vs Truth) */}
+          {/* Section 3: Root Cause Hypotheses */}
           {analysis.rca && (
-            <Card>
-              <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
+            <Card className="bg-obsidian-800 border-obsidian-700">
+              <CardHeader className="py-3.5 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-obsidian-700">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    <Sparkles className="w-4 h-4 text-ai-violet" />
                     Root Cause Analysis (AI-Generated Hypotheses)
                   </CardTitle>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
+                  <p className="text-[11px] text-obsidian-muted mt-0.5">
                     Hypotheses are analytical suggestions and must not be treated as confirmed without verification.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant={analysis.rca.root_cause_confirmed ? "success" : "high"}>
+                  <Badge variant={analysis.rca.root_cause_confirmed ? "success" : "warning"}>
                     Root Cause Confirmed: {analysis.rca.root_cause_confirmed ? "True" : "False"}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-4 space-y-4">
-                <div className="p-3 bg-slate-950/60 rounded-lg border border-slate-800 text-xs text-slate-300">
-                  <span className="text-slate-500 font-semibold block mb-0.5">RCA Summary:</span>
+                <div className="p-3.5 bg-obsidian-900 rounded-lg border border-obsidian-700 text-xs text-obsidian-secondary">
+                  <span className="text-obsidian-muted font-semibold block mb-0.5 font-mono text-[11px]">RCA Summary:</span>
                   {analysis.rca.summary}
                 </div>
 
                 {analysis.rca.most_likely_hypothesis && (
-                  <div className="p-3 bg-indigo-950/40 border border-indigo-800/60 rounded-lg text-xs">
-                    <span className="text-indigo-400 font-semibold uppercase tracking-wider text-[11px] block">
+                  <div className="p-3.5 bg-ai-violet/10 border border-ai-violet/30 rounded-lg text-xs">
+                    <span className="text-ai-violet font-semibold uppercase tracking-wider text-[11px] block font-mono">
                       Most Likely Hypothesis
                     </span>
-                    <p className="text-slate-200 font-medium mt-1">
+                    <p className="text-obsidian-text font-medium mt-1">
                       {analysis.rca.most_likely_hypothesis}
                     </p>
                   </div>
                 )}
 
                 <div className="space-y-3">
-                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <h4 className="text-xs font-semibold text-obsidian-muted uppercase tracking-wider font-mono">
                     Evaluated Hypotheses Matrix
                   </h4>
                   {analysis.rca.hypotheses?.map((hypo, idx: number) => (
                     <div
                       key={idx}
-                      className="p-4 rounded-lg bg-slate-950 border border-slate-800 text-xs space-y-2.5"
+                      className="p-4 rounded-lg bg-obsidian-900 border border-obsidian-700 text-xs space-y-2.5"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-slate-200 text-sm">{hypo.title}</span>
+                        <span className="font-semibold text-obsidian-text text-sm">{hypo.title}</span>
                         <Badge variant="outline">Confidence: {hypo.confidence}</Badge>
                       </div>
-                      <p className="text-slate-400">{hypo.description}</p>
+                      <p className="text-obsidian-secondary">{hypo.description}</p>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1">
-                        <div className="p-2.5 rounded bg-slate-900 border border-slate-800">
-                          <span className="text-emerald-400 font-semibold block mb-1">
+                        <div className="p-2.5 rounded bg-obsidian-850 border border-obsidian-700">
+                          <span className="text-status-healthy font-semibold block mb-1 font-mono text-[11px]">
                             Supporting Evidence ({hypo.supporting_evidence?.length || 0})
                           </span>
-                          <ul className="list-disc list-inside text-slate-400 space-y-0.5">
+                          <ul className="list-disc list-inside text-obsidian-secondary space-y-0.5 text-[11px]">
                             {hypo.supporting_evidence?.map((item: string, i: number) => (
                               <li key={i}>{item}</li>
                             ))}
                           </ul>
                         </div>
 
-                        <div className="p-2.5 rounded bg-slate-900 border border-slate-800">
-                          <span className="text-rose-400 font-semibold block mb-1">
+                        <div className="p-2.5 rounded bg-obsidian-850 border border-obsidian-700">
+                          <span className="text-status-critical font-semibold block mb-1 font-mono text-[11px]">
                             Contradicting Evidence ({hypo.contradicting_evidence?.length || 0})
                           </span>
-                          <ul className="list-disc list-inside text-slate-400 space-y-0.5">
+                          <ul className="list-disc list-inside text-obsidian-secondary space-y-0.5 text-[11px]">
                             {hypo.contradicting_evidence?.map((item: string, i: number) => (
                               <li key={i}>{item}</li>
                             ))}
                           </ul>
                         </div>
 
-                        <div className="p-2.5 rounded bg-slate-900 border border-slate-800">
-                          <span className="text-amber-400 font-semibold block mb-1">
+                        <div className="p-2.5 rounded bg-obsidian-850 border border-obsidian-700">
+                          <span className="text-status-warning font-semibold block mb-1 font-mono text-[11px]">
                             Missing Evidence ({hypo.missing_evidence?.length || 0})
                           </span>
-                          <ul className="list-disc list-inside text-slate-400 space-y-0.5">
+                          <ul className="list-disc list-inside text-obsidian-secondary space-y-0.5 text-[11px]">
                             {hypo.missing_evidence?.map((item: string, i: number) => (
                               <li key={i}>{item}</li>
                             ))}
@@ -333,7 +335,7 @@ export const InvestigationPage: React.FC = () => {
           }
           action={
             <Button
-              variant="primary"
+              variant="ai"
               onClick={() => analyzeMutation.mutate()}
               isLoading={analyzeMutation.isPending}
             >

@@ -68,3 +68,29 @@ export interface RollbackEvent {
 export interface CreateRollbackAssessmentInput {
   idempotency_key: string;
 }
+
+export interface RollbackExecutionDetail {
+  id: string;
+  assessment_id: string;
+  execution_id: string;
+  incident_id: string;
+  approval_id: string;
+  operation_id: string;
+  status: string;
+  requested_by: string;
+  idempotency_key: string;
+  requested_at: string;
+  started_at: string;
+  completed_at: string;
+  duration_ms: number;
+  restored_scenario: string;
+  restored_state: Record<string, any>;
+  error_message?: string | null;
+  is_replay: boolean;
+}
+
+export interface ExecuteRollbackInput {
+  assessment_id: string;
+  idempotency_key: string;
+  reason?: string;
+}

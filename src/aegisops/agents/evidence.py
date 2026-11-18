@@ -21,10 +21,17 @@ def collect_incident_evidence(state: IncidentState) -> dict:
             raise ValueError("Alert timestamp must include a timezone")
 
         metrics = collect_metrics(at=timestamp)
+        evidence_type = "historical" if timestamp else "live_snapshot"
+
+        if timestamp is not None and all(value is None for value in metrics.values()):
+            live_metrics = collect_metrics(at=None)
+            if any(value is not None for value in live_metrics.values()):
+                metrics = live_metrics
+                evidence_type = "live_snapshot"
 
         return {
             "evidence": metrics,
-            "evidence_type": "historical" if timestamp else "live_snapshot",
+            "evidence_type": evidence_type,
             "evidence_collected_at": datetime.now(UTC).isoformat(),
             "monitoring_error": None,
         }

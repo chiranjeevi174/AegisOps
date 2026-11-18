@@ -3,22 +3,27 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "./test-utils";
 import { ExecutionsPage } from "@/features/executions/ExecutionsPage";
-import { executionsApi, approvalsApi, authApi } from "@/services/api";
+import { executionsApi, approvalsApi, authApi, overviewApi } from "@/services/api";
 
 vi.mock("@/services/api", () => ({
   executionsApi: {
     getOperations: vi.fn(),
+    getDemoOperations: vi.fn(),
     list: vi.fn(),
     get: vi.fn(),
     getEvents: vi.fn(),
     simulate: vi.fn(),
     diagnose: vi.fn(),
+    executeDemo: vi.fn(),
   },
   approvalsApi: {
     list: vi.fn(),
   },
   authApi: {
     getMe: vi.fn(),
+  },
+  overviewApi: {
+    getSettings: vi.fn(),
   },
 }));
 
@@ -111,7 +116,9 @@ describe("ExecutionsPage & Diagnostic Boundaries", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (authApi.getMe as any).mockResolvedValue(mockActor);
+    (overviewApi.getSettings as any).mockResolvedValue({ live_diagnostics_enabled: true });
     (executionsApi.getOperations as any).mockResolvedValue(mockOperations);
+    (executionsApi.getDemoOperations as any).mockResolvedValue([]);
     (approvalsApi.list as any).mockResolvedValue(mockApprovedApprovals);
     (executionsApi.list as any).mockResolvedValue(mockExecutions);
     (executionsApi.get as any).mockResolvedValue({

@@ -1,7 +1,8 @@
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from aegisops.api.approval_schemas import (
@@ -22,6 +23,7 @@ from aegisops.core.auth import (
 from aegisops.core.rate_limit import rate_limit_decisions
 from aegisops.db.session import get_db
 from aegisops.domain.approval import ApprovalStatus
+from aegisops.domain.incident import Incident
 from aegisops.observability.metrics import APPROVAL_DECISIONS
 from aegisops.services import approvals
 from aegisops.services.approvals import (
@@ -40,6 +42,11 @@ router = APIRouter(tags=["Remediation Approvals"])
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 
 
+class CreateApprovalRequestInput(BaseModel):
+    plan: dict[str, Any] | None = None
+    rca: dict[str, Any] | None = None
+
+
 @router.post(
     "/incidents/{incident_id}/approvals",
     response_model=ApprovalResponse,
@@ -49,18 +56,32 @@ async def create_incident_approval(
     incident_id: UUID,
     actor: Annotated[AuthenticatedActor, Depends(get_requester_actor)],
     db: DbSession,
+    payload: CreateApprovalRequestInput | None = None,
 ):
-    try:
-        # Run workflow to produce and safety-validate the server-side remediation plan
-        result = await run_incident_workflow(db, incident_id)
-    except IncidentNotFoundError:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Incident {incident_id} not found",
-        )
+    plan_dict = payload.plan if payload and payload.plan else None
+    rca_dict = payload.rca if payload and payload.rca else None
+    error = None
 
-    plan_dict = result.get("remediation_plan")
-    error = result.get("remediation_error")
+    if not plan_dict:
+        try:
+            # Run workflow to produce and safety-validate the server-side remediation plan
+            result = await run_incident_workflow(db, incident_id)
+            plan_dict = result.get("remediation_plan")
+            rca_dict = result.get("rca")
+            error = result.get("remediation_error")
+        except IncidentNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Incident {incident_id} not found",
+            )
+    else:
+        # Verify incident exists
+        incident = await db.get(Incident, incident_id)
+        if incident is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Incident {incident_id} not found",
+            )
 
     if not plan_dict or error:
         raise HTTPException(
@@ -74,7 +95,7 @@ async def create_incident_approval(
             incident_id=incident_id,
             plan=plan_dict,
             requested_by=actor.identity,
-            rca=result.get("rca"),
+            rca=rca_dict,
         )
         return approval
     except (RemediationSafetyError, ApprovalValidationError) as exc:

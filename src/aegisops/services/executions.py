@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
+import httpx
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -130,6 +131,96 @@ OPERATION_BINDING_RULES: dict[str, dict[str, Any]] = {
             "runtime",
         },
     },
+    "remediate_service_degradation": {
+        "allowed_action_types": {
+            "remediation",
+            "mitigation",
+            "recovery",
+            "diagnostic",
+            "configuration_review",
+        },
+        "keywords": {
+            "remediate",
+            "degradation",
+            "restore",
+            "health",
+            "recover",
+            "mitigate",
+            "service",
+            "restart",
+            "reset",
+            "cpu",
+            "latency",
+            "saturation",
+            "inspect",
+            "log",
+            "logs",
+            "slow",
+            "request",
+            "requests",
+            "error",
+            "errors",
+            "application",
+        },
+    },
+    "restart_demo_service": {
+        "allowed_action_types": {
+            "remediation",
+            "mitigation",
+            "recovery",
+            "diagnostic",
+            "configuration_review",
+        },
+        "keywords": {
+            "restart",
+            "reboot",
+            "cycle",
+            "service",
+            "bounce",
+            "refresh",
+            "recover",
+            "health",
+            "availability",
+            "inspect",
+            "log",
+            "logs",
+            "slow",
+            "request",
+            "requests",
+            "error",
+            "errors",
+            "application",
+        },
+    },
+    "scale_demo_workload": {
+        "allowed_action_types": {
+            "remediation",
+            "mitigation",
+            "scaling",
+            "recovery",
+            "diagnostic",
+            "configuration_review",
+        },
+        "keywords": {
+            "scale",
+            "workload",
+            "replicas",
+            "capacity",
+            "instances",
+            "worker",
+            "concurrency",
+            "traffic",
+            "inspect",
+            "log",
+            "logs",
+            "slow",
+            "request",
+            "requests",
+            "error",
+            "errors",
+            "application",
+        },
+    },
 }
 
 
@@ -225,29 +316,43 @@ async def validate_approval_eligibility(
 
     # 6. Verify operation allowlist and mode support
     op_def = get_operation_definition(operation_id)
-    if op_def.real_execution_supported:
-        raise OperationNotAllowedError(
-            "Mutating execution is forbidden; only simulation and read-only diagnostics are supported"
-        )
+    if mode == ExecutionMode.DEMO_EXECUTION:
+        if not get_settings().can_execute_demo:
+            raise OperationNotAllowedError(
+                "Demo execution is disabled or forbidden in this environment"
+            )
+        if not op_def.real_execution_supported:
+            raise OperationNotAllowedError(
+                f"Operation '{operation_id}' does not support demo execution"
+            )
+        if ExecutionMode.DEMO_EXECUTION.value not in op_def.supported_modes:
+            raise OperationNotAllowedError(
+                f"Operation '{operation_id}' does not support demo execution mode"
+            )
+    else:
+        if op_def.real_execution_supported:
+            raise OperationNotAllowedError(
+                "Mutating execution is forbidden; only simulation and read-only diagnostics are supported"
+            )
 
-    if mode == ExecutionMode.SIMULATION:
-        if ExecutionMode.SIMULATION.value not in op_def.supported_modes:
-            raise OperationNotAllowedError(
-                f"Operation '{operation_id}' does not support simulation mode"
-            )
-    elif mode == ExecutionMode.LIVE_DIAGNOSTIC:
-        if not get_settings().live_diagnostics_enabled:
-            raise LiveDiagnosticsDisabledError(
-                "Live diagnostics are disabled in application configuration"
-            )
-        if not op_def.live_diagnostic_supported:
-            raise OperationNotAllowedError(
-                f"Operation '{operation_id}' does not support live diagnostic mode"
-            )
-        if ExecutionMode.LIVE_DIAGNOSTIC.value not in op_def.supported_modes:
-            raise OperationNotAllowedError(
-                f"Operation '{operation_id}' does not support live diagnostic mode"
-            )
+        if mode == ExecutionMode.SIMULATION:
+            if ExecutionMode.SIMULATION.value not in op_def.supported_modes:
+                raise OperationNotAllowedError(
+                    f"Operation '{operation_id}' does not support simulation mode"
+                )
+        elif mode == ExecutionMode.LIVE_DIAGNOSTIC:
+            if not get_settings().live_diagnostics_enabled:
+                raise LiveDiagnosticsDisabledError(
+                    "Live diagnostics are disabled in application configuration"
+                )
+            if not op_def.live_diagnostic_supported:
+                raise OperationNotAllowedError(
+                    f"Operation '{operation_id}' does not support live diagnostic mode"
+                )
+            if ExecutionMode.LIVE_DIAGNOSTIC.value not in op_def.supported_modes:
+                raise OperationNotAllowedError(
+                    f"Operation '{operation_id}' does not support live diagnostic mode"
+                )
 
     # 7. Verify recommendation index and deterministic scope binding
     actions = approval.plan_snapshot.get("recommended_actions", [])
@@ -679,3 +784,211 @@ async def get_execution_events(
     )
     result = await session.scalars(stmt)
     return list(result.all())
+
+
+async def execute_demo_remediation(
+    session: AsyncSession,
+    approval_id: UUID,
+    incident_id: UUID,
+    operation_id: str,
+    recommendation_index: int,
+    parameters: dict[str, Any],
+    idempotency_key: str,
+    requested_by: str,
+) -> tuple[RemediationExecution, bool]:
+    """Coordinates approval validation, idempotency checks, and live remediation against the isolated demo simulator.
+
+    Strictly gated to development environments; prohibited in production.
+    Returns (execution_record, is_replay).
+    """
+    settings = get_settings()
+    if not settings.can_execute_demo:
+        raise OperationNotAllowedError(
+            "Demo execution is disabled or forbidden in this environment"
+        )
+
+    if not idempotency_key or not idempotency_key.strip():
+        raise ValueError("An idempotency key is required")
+
+    idempotency_key = idempotency_key.strip()
+
+    # 1. Validate operation parameters early
+    validated_params = validate_operation_parameters(operation_id, parameters)
+
+    # 2. Check idempotency and concurrency
+    existing_stmt = select(RemediationExecution).where(
+        RemediationExecution.approval_id == approval_id,
+        RemediationExecution.idempotency_key == idempotency_key,
+    )
+    existing = await session.scalar(existing_stmt)
+    if existing is not None:
+        if existing.status in (
+            ExecutionStatus.PENDING.value,
+            ExecutionStatus.RUNNING.value,
+        ):
+            raise ConcurrencyConflictError(
+                f"An execution with idempotency key '{idempotency_key}' is already in progress"
+            )
+
+        if (
+            existing.mode == ExecutionMode.DEMO_EXECUTION.value
+            and existing.operation_id == operation_id
+            and existing.selected_recommendation_index == recommendation_index
+            and _canonical_params(existing.parameters)
+            == _canonical_params(validated_params)
+        ):
+            return existing, True
+
+        raise IdempotencyConflictError(
+            f"Idempotency key '{idempotency_key}' already used with conflicting mode, operation, or parameters"
+        )
+
+    # 3. Validate approval eligibility and plan binding
+    approval, recommendation_title = await validate_approval_eligibility(
+        session=session,
+        approval_id=approval_id,
+        incident_id=incident_id,
+        operation_id=operation_id,
+        recommendation_index=recommendation_index,
+        actor_identity=requested_by,
+        mode=ExecutionMode.DEMO_EXECUTION,
+    )
+
+    now = datetime.now(UTC)
+
+    # 4. Persist RUNNING record and commit to prevent concurrent duplicates and release DB lock
+    execution = RemediationExecution(
+        incident_id=incident_id,
+        approval_id=approval_id,
+        approved_plan_hash=approval.plan_hash,
+        approved_plan_version=approval.version,
+        selected_recommendation_index=recommendation_index,
+        selected_recommendation_title=recommendation_title,
+        operation_id=operation_id,
+        parameters=validated_params,
+        requested_by=requested_by,
+        mode=ExecutionMode.DEMO_EXECUTION.value,
+        status=ExecutionStatus.RUNNING.value,
+        idempotency_key=idempotency_key,
+        requested_at=now,
+        started_at=now,
+        completed_at=now,
+        simulation_result=None,
+        diagnostic_result=None,
+        execution_result=None,
+        duration_ms=0,
+    )
+    session.add(execution)
+    await session.flush()
+
+    start_event = ExecutionEvent(
+        execution_id=execution.id,
+        incident_id=incident_id,
+        approval_id=approval_id,
+        actor=requested_by,
+        event_type=ExecutionEventType.EXECUTION_STARTED.value,
+        previous_status=None,
+        new_status=ExecutionStatus.RUNNING.value,
+        operation_id=operation_id,
+        approved_plan_hash=approval.plan_hash,
+        details={
+            "idempotency_key": idempotency_key,
+            "recommendation_index": recommendation_index,
+            "recommendation_title": recommendation_title,
+            "mode": ExecutionMode.DEMO_EXECUTION.value,
+            "actual_infrastructure_access": True,
+            "system_changes_performed": True,
+            "target_service_url": settings.demo_service_url,
+        },
+        created_at=now,
+    )
+    session.add(start_event)
+    await session.commit()
+    execution_id = execution.id
+
+    # 5. Execute network call to isolated simulator outside DB transaction
+    start_time = time.perf_counter()
+    execution_error: str | None = None
+    exec_result: dict[str, Any] | None = None
+
+    try:
+        url = f"{settings.demo_service_url}/control/remediate"
+        payload = {
+            "action": operation_id,
+            "service_name": validated_params.get("service_name", "api-service"),
+            "target_scenario": validated_params.get("target_scenario", "healthy"),
+            "incident_id": str(incident_id),
+            "parameters": validated_params,
+        }
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(url, json=payload)
+            if resp.status_code == 200:
+                exec_result = resp.json()
+            else:
+                execution_error = (
+                    f"Demo simulator returned HTTP {resp.status_code}: {resp.text}"
+                )
+    except httpx.ConnectError:
+        execution_error = (
+            f"Failed to connect to demo telemetry simulator at {settings.demo_service_url}. "
+            "Ensure 'scripts/simulate_service.py' is running on port 8001."
+        )
+    except Exception as exc:  # noqa: BLE001
+        execution_error = (
+            f"Demo remediation execution failure: {type(exc).__name__}: {exc}"
+        )
+
+    end_time = time.perf_counter()
+    duration_ms = max(1, int((end_time - start_time) * 1000))
+    completed_at = datetime.now(UTC)
+
+    # 6. Persist terminal results and audit event atomically in DB
+    exec_record = await session.get(RemediationExecution, execution_id)
+    if exec_record is None:
+        raise ExecutionNotFoundError(f"Execution record {execution_id} disappeared")
+
+    exec_record.completed_at = completed_at
+    exec_record.duration_ms = duration_ms
+
+    if execution_error is not None or exec_result is None:
+        exec_record.status = ExecutionStatus.FAILED.value
+        exec_record.error_message = execution_error
+        terminal_event_type = ExecutionEventType.EXECUTION_FAILED.value
+        terminal_details = {
+            "error": execution_error,
+            "mode": ExecutionMode.DEMO_EXECUTION.value,
+            "actual_infrastructure_access": True,
+            "system_changes_performed": False,
+            "duration_ms": duration_ms,
+        }
+    else:
+        exec_record.status = ExecutionStatus.EXECUTED.value
+        exec_record.execution_result = exec_result
+        terminal_event_type = ExecutionEventType.EXECUTION_COMPLETED.value
+        terminal_details = {
+            "mode": ExecutionMode.DEMO_EXECUTION.value,
+            "duration_ms": duration_ms,
+            "actual_infrastructure_access": True,
+            "system_changes_performed": True,
+            "remediation_status": exec_result.get("status"),
+            "remediated_metrics": exec_result.get("current_state"),
+        }
+
+    completion_event = ExecutionEvent(
+        execution_id=exec_record.id,
+        incident_id=incident_id,
+        approval_id=approval_id,
+        actor=requested_by,
+        event_type=terminal_event_type,
+        previous_status=ExecutionStatus.RUNNING.value,
+        new_status=exec_record.status,
+        operation_id=operation_id,
+        approved_plan_hash=approval.plan_hash,
+        details=terminal_details,
+        created_at=completed_at,
+    )
+    session.add(completion_event)
+    await session.commit()
+    await session.refresh(exec_record)
+
+    return exec_record, False

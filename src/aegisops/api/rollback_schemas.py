@@ -73,3 +73,38 @@ class RollbackEventResponse(BaseModel):
     readiness_status: str | None = None
     details: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime
+
+
+class ExecuteRollbackRequest(BaseModel):
+    assessment_id: UUID
+    idempotency_key: str = Field(
+        min_length=8,
+        max_length=128,
+        description="Unique caller-provided idempotency key for rollback execution.",
+    )
+    reason: str = Field(
+        default="Operator authorized rollback following remediation verification.",
+        max_length=200,
+    )
+
+
+class RollbackExecutionDetailResponse(BaseModel):
+    id: UUID
+    assessment_id: UUID
+    execution_id: UUID
+    incident_id: UUID
+    approval_id: UUID
+    operation_id: str
+    status: str
+    requested_by: str
+    idempotency_key: str
+    requested_at: datetime
+    started_at: datetime
+    completed_at: datetime
+    duration_ms: int
+    restored_scenario: str
+    restored_state: dict[str, Any] = Field(default_factory=dict)
+    error_message: str | None = None
+    is_replay: bool = False
+
+    model_config = {"from_attributes": True}
